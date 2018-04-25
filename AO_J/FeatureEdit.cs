@@ -9,8 +9,11 @@ namespace AO_J
     /// <summary>
     /// 与要素查询、创建、删除等有关的操作
     /// </summary>
-    class FeatureEdit
+    public class FeatureEdit
     {
+        /// <summary>
+        /// 构造函数，目前不做任何事
+        /// </summary>
         public FeatureEdit() {}
 
         /// <summary>

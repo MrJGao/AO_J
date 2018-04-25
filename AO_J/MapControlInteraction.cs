@@ -11,14 +11,18 @@ namespace AO_J
     /// <summary>
     /// 与地图控件的交互，主要但不限于Add-in模式开发使用
     /// </summary>
-    class MapControlInteraction
+    public class MapControlInteraction
     {
+        /// <summary>
+        /// 构造函数，目前不做任何事
+        /// </summary>
         public MapControlInteraction() { }
 
         /// <summary>
         /// 根据图层名称获取图层对象
         /// </summary>
         /// <param name="name">图层名称</param>
+        /// <param name="mapControl">地图控件对象</param>
         /// <returns>ILayer图层对象</returns>
         public ILayer getLayerByName(string name, IMapControlDefault mapControl)
         {
@@ -37,6 +41,8 @@ namespace AO_J
         /// 根据图层名称获取图层对象
         /// </summary>
         /// <param name="name">图层名称</param>
+        /// <param name="map">IMap地图对象</param>
+        /// <param name="editor">IEditor编辑器对象</param>
         /// <returns>ILayer图层对象</returns>
         public ILayer getLayerByName(string name, IMap map, IEditor editor = null)
         {
@@ -75,8 +81,7 @@ namespace AO_J
             }
             return null;
         }
-
-        /// <summary>
+        
         /// 获取图层组中的所有要素图层，递归调用
         /// </summary>
         /// <param name="temp_grouplayer"></param>

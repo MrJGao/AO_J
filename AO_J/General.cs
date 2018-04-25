@@ -7,8 +7,11 @@ namespace AO_J
     /// <summary>
     /// 不使用AO，但比较通用的操作
     /// </summary>
-    class General
+    public class General
     {
+        /// <summary>
+        /// 构造函数，目前不做任何事
+        /// </summary>
         public General() { }
 
         /// <summary>

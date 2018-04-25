@@ -7,8 +7,11 @@ namespace AO_J
     /// <summary>
     /// 需要使用到AO里GeoProcessing进行操作的功能
     /// </summary>
-    class GpOperation
+    public class GpOperation
     {
+        /// <summary>
+        /// 构造函数，目前不做任何事
+        /// </summary>
         public GpOperation() { }
 
         /// <summary>

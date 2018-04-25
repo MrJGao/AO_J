@@ -7,8 +7,11 @@ namespace AO_J
     /// <summary>
     /// 与地图显示相关的操作
     /// </summary>
-    class MapDisplay
+    public class MapDisplay
     {
+        /// <summary>
+        /// 构造函数，目前不做任何事
+        /// </summary>
         public MapDisplay() {}
 
         /// <summary>
