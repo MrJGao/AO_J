@@ -1,0 +1,187 @@
+﻿using AO_J;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ESRI.ArcGIS.Carto;
+using ESRI.ArcGIS.Geodatabase;
+
+namespace AO_J_TestProject
+{
+    /// <summary>
+    ///这是 FeatureEditTest 的测试类，旨在
+    ///包含所有 FeatureEditTest 单元测试
+    ///</summary>
+    [TestClass()]
+    public class FeatureEditTest
+    {
+        private TestContext testContextInstance;
+
+        /// <summary>
+        ///获取或设置测试上下文，上下文提供
+        ///有关当前测试运行及其功能的信息。
+        ///</summary>
+        public TestContext TestContext
+        {
+            get
+            {
+                return testContextInstance;
+            }
+            set
+            {
+                testContextInstance = value;
+            }
+        }
+
+        #region 附加测试特性
+        // 
+        //编写测试时，还可使用以下特性:
+        //
+        //使用 ClassInitialize 在运行类中的第一个测试前先运行代码
+        //[ClassInitialize()]
+        //public static void MyClassInitialize(TestContext testContext)
+        //{
+        //}
+        //
+        //使用 ClassCleanup 在运行完类中的所有测试后再运行代码
+        //[ClassCleanup()]
+        //public static void MyClassCleanup()
+        //{
+        //}
+        //
+        //使用 TestInitialize 在运行每个测试前先运行代码
+        //[TestInitialize()]
+        //public void MyTestInitialize()
+        //{
+        //}
+        //
+        //使用 TestCleanup 在运行完每个测试后运行代码
+        //[TestCleanup()]
+        //public void MyTestCleanup()
+        //{
+        //}
+        //
+        #endregion
+
+
+        /// <summary>
+        ///FeatureEdit 构造函数 的测试
+        ///</summary>
+        [TestMethod()]
+        public void FeatureEditConstructorTest()
+        {
+            FeatureEdit target = new FeatureEdit();
+            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
+        }
+
+        /// <summary>
+        ///exportSelectedFeatureToShp 的测试
+        ///</summary>
+        [TestMethod()]
+        public void exportSelectedFeatureToShpTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            IFeatureLayer featureLayer = null; // TODO: 初始化为适当的值
+            ISelectionSet selectionSet = null; // TODO: 初始化为适当的值
+            string outName = string.Empty; // TODO: 初始化为适当的值
+            target.exportSelectedFeatureToShp(featureLayer, selectionSet, outName);
+            Assert.Inconclusive("无法验证不返回值的方法。");
+        }
+
+        /// <summary>
+        ///getFeatureClassFromFile 的测试
+        ///</summary>
+        [TestMethod()]
+        public void getFeatureClassFromFileTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            string filename = string.Empty; // TODO: 初始化为适当的值
+            string featureClassName = string.Empty; // TODO: 初始化为适当的值
+            string extention = string.Empty; // TODO: 初始化为适当的值
+            IFeatureClass expected = null; // TODO: 初始化为适当的值
+            IFeatureClass actual;
+            actual = target.getFeatureClassFromFile(filename, featureClassName, extention);
+            Assert.AreEqual(expected, actual);
+            Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///getFeatureValue 的测试
+        ///</summary>
+        [TestMethod()]
+        public void getFeatureValueTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            IFeature feature = null; // TODO: 初始化为适当的值
+            string fieldName = string.Empty; // TODO: 初始化为适当的值
+            object expected = null; // TODO: 初始化为适当的值
+            object actual;
+            actual = target.getFeatureValue(feature, fieldName);
+            Assert.AreEqual(expected, actual);
+            Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///getFeatureWorkspaceFromFile 的测试
+        ///</summary>
+        [TestMethod()]
+        public void getFeatureWorkspaceFromFileTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            string filename = string.Empty; // TODO: 初始化为适当的值
+            string extention = string.Empty; // TODO: 初始化为适当的值
+            IFeatureWorkspace expected = null; // TODO: 初始化为适当的值
+            IFeatureWorkspace actual;
+            actual = target.getFeatureWorkspaceFromFile(filename, extention);
+            Assert.AreEqual(expected, actual);
+            Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///getWorkspaceFactory 的测试
+        ///</summary>
+        [TestMethod()]
+        public void getWorkspaceFactoryTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            string extension = string.Empty; // TODO: 初始化为适当的值
+            IWorkspaceFactory expected = null; // TODO: 初始化为适当的值
+            IWorkspaceFactory actual;
+            actual = target.getWorkspaceFactory(extension);
+            Assert.AreEqual(expected, actual);
+            Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///setFeatureBufferValue 的测试
+        ///</summary>
+        [TestMethod()]
+        public void setFeatureBufferValueTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            IFeatureBuffer feaBuf = null; // TODO: 初始化为适当的值
+            string fieldName = string.Empty; // TODO: 初始化为适当的值
+            object value = null; // TODO: 初始化为适当的值
+            bool expected = false; // TODO: 初始化为适当的值
+            bool actual;
+            actual = target.setFeatureBufferValue(feaBuf, fieldName, value);
+            Assert.AreEqual(expected, actual);
+            Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///setFeatureValue 的测试
+        ///</summary>
+        [TestMethod()]
+        public void setFeatureValueTest()
+        {
+            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            IFeature feature = null; // TODO: 初始化为适当的值
+            string fieldName = string.Empty; // TODO: 初始化为适当的值
+            object value = null; // TODO: 初始化为适当的值
+            bool save = false; // TODO: 初始化为适当的值
+            bool expected = false; // TODO: 初始化为适当的值
+            bool actual;
+            actual = target.setFeatureValue(feature, fieldName, value, save);
+            Assert.AreEqual(expected, actual);
+            Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+    }
+}
