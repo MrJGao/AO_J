@@ -3,17 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ESRI.ArcGIS.esriSystem;
 
 namespace AO_J_TestProject
 {
     [TestClass()]
     public class TestInitialize
     {
-        private static string m_testResultFolder = "..\\..\\..\\AO_J_TestProject\\TestData\\TestResult\\";
+        public static string m_testDataPath = "..\\..\\..\\AO_J_TestProject\\TestData\\";
+        public static string m_testResultFolder = "..\\..\\..\\AO_J_TestProject\\TestData\\TestResult\\";
+
+        private static IAoInitialize aoInitialize = null;
+        private static esriLicenseStatus licenseStatus;
 
         [AssemblyInitialize()]
         public static void MyTestInitialize(TestContext testContext)
         {
+            // 初始化ArcObjects权限
+            #region Licensing
+            ESRI.ArcGIS.RuntimeManager.Bind(ESRI.ArcGIS.ProductCode.EngineOrDesktop);
+            aoInitialize = new AoInitializeClass();
+            licenseStatus = aoInitialize.Initialize(esriLicenseProductCode.esriLicenseProductCodeAdvanced);
+            if (licenseStatus != esriLicenseStatus.esriLicenseCheckedOut)
+            {
+                Console.WriteLine("Unable to check-out an ArcInfo license, error code is {0}", licenseStatus);
+                return;
+            }
+            #endregion
+
             // 创建测试结果文件夹
             System.IO.Directory.CreateDirectory(m_testResultFolder);
         }

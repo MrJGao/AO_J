@@ -15,10 +15,10 @@ namespace AO_J
         public General() { }
 
         /// <summary>
-        /// 复制文件或文件夹到指定位置
+        /// 复制文件夹到指定位置
         /// </summary>
-        /// <param name="sourcePath">源路径</param>
-        /// <param name="destinationPath">目标路径</param>
+        /// <param name="sourcePath">源文件夹路径</param>
+        /// <param name="destinationPath">目标文件夹路径</param>
         public static void CopyDirectory(String sourcePath, String destinationPath)
         {
             DirectoryInfo info = new DirectoryInfo(sourcePath);
