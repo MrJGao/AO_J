@@ -72,7 +72,7 @@ namespace AO_J_TestProject
         public void GeneralConstructorTest()
         {
             General target = new General();
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
+            Assert.IsNotNull(target);
         }
 
         /// <summary>
@@ -81,10 +81,10 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void CopyDirectoryTest()
         {
-            string sourcePath = m_testDataPath + "directory";
-            string destinationPath = m_testResultPath;
-            General.CopyDirectory(sourcePath, destinationPath);
-            Assert.IsTrue(Directory.Exists(destinationPath));
+            string srcDirPath = m_testDataPath + "directory";
+            string dstDirPath = m_testResultPath;
+            General.CopyDirectory(srcDirPath, dstDirPath);
+            Assert.IsTrue(Directory.Exists(dstDirPath));
         }
 
         /// <summary>

@@ -2,6 +2,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.Geodatabase;
+using System;
+using System.Runtime.InteropServices;
+using System.IO;
+using ESRI.ArcGIS.DataSourcesFile;
+using ESRI.ArcGIS.esriSystem;
 
 namespace AO_J_TestProject
 {
@@ -12,6 +17,9 @@ namespace AO_J_TestProject
     [TestClass()]
     public class FeatureEditTest
     {
+        private static IWorkspaceFactory m_workspaceFactory = null;
+        private static IFeatureWorkspace m_featureWorkspace = null;
+
         private TestContext testContextInstance;
 
         /// <summary>
@@ -35,29 +43,36 @@ namespace AO_J_TestProject
         //编写测试时，还可使用以下特性:
         //
         //使用 ClassInitialize 在运行类中的第一个测试前先运行代码
-        //[ClassInitialize()]
-        //public static void MyClassInitialize(TestContext testContext)
-        //{
-        //}
-        //
+        [ClassInitialize()]
+        public static void MyClassInitialize(TestContext testContext)
+        {
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            m_workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            m_featureWorkspace = m_workspaceFactory.OpenFromFile(Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+        }
+        
         //使用 ClassCleanup 在运行完类中的所有测试后再运行代码
-        //[ClassCleanup()]
-        //public static void MyClassCleanup()
-        //{
-        //}
+        [ClassCleanup()]
+        public static void MyClassCleanup()
+        {
+            Marshal.ReleaseComObject(m_featureWorkspace);
+            Marshal.ReleaseComObject(m_workspaceFactory);
+        }
         //
         //使用 TestInitialize 在运行每个测试前先运行代码
-        //[TestInitialize()]
-        //public void MyTestInitialize()
-        //{
-        //}
-        //
+        [TestInitialize()]
+        public void MyTestInitialize()
+        {
+        }
+        
         //使用 TestCleanup 在运行完每个测试后运行代码
-        //[TestCleanup()]
-        //public void MyTestCleanup()
-        //{
-        //}
-        //
+        [TestCleanup()]
+        public void MyTestCleanup()
+        {
+        }
+        
         #endregion
 
 
@@ -108,14 +123,14 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void getFeatureValueTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
-            IFeature feature = null; // TODO: 初始化为适当的值
-            string fieldName = string.Empty; // TODO: 初始化为适当的值
-            object expected = null; // TODO: 初始化为适当的值
-            object actual;
-            actual = target.getFeatureValue(feature, fieldName);
+            FeatureEdit target = new FeatureEdit();
+            
+            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            IFeature feature = featureClass.GetFeature(0);
+            string fieldName = "NAME";
+            object expected = "NOATAK";
+            object actual = target.getFeatureValue(feature, fieldName);
             Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
         }
 
         /// <summary>
@@ -172,12 +187,14 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void setFeatureValueTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
-            IFeature feature = null; // TODO: 初始化为适当的值
-            string fieldName = string.Empty; // TODO: 初始化为适当的值
-            object value = null; // TODO: 初始化为适当的值
-            bool save = false; // TODO: 初始化为适当的值
-            bool expected = false; // TODO: 初始化为适当的值
+            FeatureEdit target = new FeatureEdit();
+
+            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            IFeature feature = featureClass.GetFeature(0);
+            string fieldName = string.Empty;
+            object value = null;
+            bool save = false;
+            bool expected = false;
             bool actual;
             actual = target.setFeatureValue(feature, fieldName, value, save);
             Assert.AreEqual(expected, actual);
