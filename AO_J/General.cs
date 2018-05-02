@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.AccessControl;
+using System.Collections.Generic;
 
 namespace AO_J
 {
@@ -19,7 +20,7 @@ namespace AO_J
         /// </summary>
         /// <param name="sourcePath">源路径</param>
         /// <param name="destinationPath">目标路径</param>
-        public static void CopyDirectory(String sourcePath, String destinationPath)
+        public void CopyDirectory(String sourcePath, String destinationPath)
         {
             DirectoryInfo info = new DirectoryInfo(sourcePath);
             Directory.CreateDirectory(destinationPath);
@@ -41,7 +42,7 @@ namespace AO_J
         /// 为文件夹添加完全访问权限
         /// </summary>
         /// <param name="filepath">文件夹路径</param>
-        public static void addSecurityControl(string filepath)
+        public void addSecurityControl(string filepath)
         {
             //获取文件夹信息
             DirectoryInfo dir = new DirectoryInfo(filepath);
@@ -58,6 +59,28 @@ namespace AO_J
             dirSecurity.ModifyAccessRule(AccessControlModification.Add, usersFileSystemAccessRule, out isModified);
             //设置访问权限
             dir.SetAccessControl(dirSecurity);
+        }
+
+        /// <summary>
+        /// 获取目录下所有指定后缀格式的文件，支持多层级目录（不支持多后缀名）
+        /// </summary>
+        /// <param name="srcPath">搜索目录</param>
+        /// <param name="filterPattern">后缀名字符串（例如：".docx"）</param>
+        /// <param name="filenameList">文件名列表，使用 ref 传入</param>
+        public void getAllSpecifiedFilesFromFolder(string srcPath, string filterPattern, ref List<string> filenameList)
+        {
+            DirectoryInfo info = new DirectoryInfo(srcPath);
+            foreach (FileSystemInfo fsi in info.GetFileSystemInfos())
+            {
+                if (fsi is System.IO.FileInfo && fsi.Extension.ToUpper() == filterPattern.ToUpper()) // 如果是文件，复制文件
+                {
+                    filenameList.Add(fsi.FullName);
+                }
+                else if (fsi is System.IO.DirectoryInfo) // 如果是文件夹，新建文件夹，递归
+                {
+                    getAllSpecifiedFilesFromFolder(fsi.FullName, filterPattern, ref filenameList);
+                }
+            }
         }
     }
 }
