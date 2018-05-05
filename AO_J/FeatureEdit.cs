@@ -108,7 +108,14 @@ namespace AO_J
             int index = feature.Fields.FindField(fieldName);
             if (index == -1) return false;
 
-            feature.set_Value(index, value);
+            try
+            {
+                feature.set_Value(index, value);
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
             if (save == true) { feature.Store(); }
 
             return true;
@@ -128,7 +135,14 @@ namespace AO_J
             {
                 return false;
             }
-            feaBuf.set_Value(index, value);
+            try
+            {
+                feaBuf.set_Value(index, value);
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
 
             return true;
         }
