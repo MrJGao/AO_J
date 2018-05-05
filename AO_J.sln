@@ -6,11 +6,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AO_J_TestProject", "AO_J_TestProject\AO_J_TestProject.csproj", "{0A5A5B7A-132D-4BED-8328-9C08478D6939}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{11A8D449-84BC-4A61-8545-A8876A4DE4B5}"
-	ProjectSection(SolutionItems) = preProject
-		AO_J.vsmdi = AO_J.vsmdi
-		Local.testsettings = Local.testsettings
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
