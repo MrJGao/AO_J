@@ -181,5 +181,30 @@ namespace AO_J
             IExportOperation exportOper = new ExportOperation();
             exportOper.ExportFeatureClass(datasetName, null, selectionSet, null, outFeatClassName, 0);
         }
+
+        /// <summary>
+        /// 判断两个点对象是否相等
+        /// </summary>
+        /// <param name="point1">第一个点</param>
+        /// <param name="point2">第二个点</param>
+        /// <param name="tolerance">精度控制</param>
+        /// <returns>相等返回true，否则返回false</returns>
+        public static bool equalPoints(ESRI.ArcGIS.Geometry.IPoint point1, ESRI.ArcGIS.Geometry.IPoint point2, double tolerance)
+        {
+            if ((Math.Abs(point1.X - point2.X) <= tolerance) &&
+                (Math.Abs(point1.Y - point2.Y) <= tolerance))
+            {
+                if (!double.IsNaN(point1.Z) && !double.IsNaN(point2.Z))
+                {
+                    if (Math.Abs(point1.Z - point2.Z) <= tolerance)
+                    {
+                        return true;
+                    }
+                }
+                return true;
+            }
+
+            return false;
+        }
     }
 }

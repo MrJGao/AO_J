@@ -5,8 +5,7 @@ using ESRI.ArcGIS.Geodatabase;
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
-using ESRI.ArcGIS.DataSourcesFile;
-using ESRI.ArcGIS.esriSystem;
+using ESRI.ArcGIS.Geometry;
 
 namespace AO_J_TestProject
 {
@@ -49,8 +48,8 @@ namespace AO_J_TestProject
             // 打开测试shp数据
             Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
             m_workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
-            string shpPath = Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
-            m_featureWorkspace = m_workspaceFactory.OpenFromFile(Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            m_featureWorkspace = m_workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
         }
         
         //使用 ClassCleanup 在运行完类中的所有测试后再运行代码
@@ -199,6 +198,20 @@ namespace AO_J_TestProject
             actual = target.setFeatureValue(feature, fieldName, value, save);
             Assert.AreEqual(expected, actual);
             Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///equalPoints 的测试
+        ///</summary>
+        [TestMethod()]
+        public void equalPointsTest()
+        {
+            IPoint point1 = new PointClass() { X = 2.356, Y = 3.34 };
+            IPoint point2 = new PointClass() { X = 2.356, Y = 3.34 };
+            double tolerance = 0.0001;
+            bool expected = true; 
+            bool actual = FeatureEdit.equalPoints(point1, point2, tolerance);
+            Assert.AreEqual(expected, actual);
         }
     }
 }
