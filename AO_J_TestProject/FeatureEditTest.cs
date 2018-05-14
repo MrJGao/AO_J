@@ -5,8 +5,7 @@ using ESRI.ArcGIS.Geodatabase;
 using System;
 using System.Runtime.InteropServices;
 using System.IO;
-using ESRI.ArcGIS.DataSourcesFile;
-using ESRI.ArcGIS.esriSystem;
+using ESRI.ArcGIS.Geometry;
 
 namespace AO_J_TestProject
 {
@@ -49,8 +48,8 @@ namespace AO_J_TestProject
             // 打开测试shp数据
             Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
             m_workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
-            string shpPath = Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
-            m_featureWorkspace = m_workspaceFactory.OpenFromFile(Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            m_featureWorkspace = m_workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
         }
         
         //使用 ClassCleanup 在运行完类中的所有测试后再运行代码
@@ -75,24 +74,13 @@ namespace AO_J_TestProject
         
         #endregion
 
-
-        /// <summary>
-        ///FeatureEdit 构造函数 的测试
-        ///</summary>
-        [TestMethod()]
-        public void FeatureEditConstructorTest()
-        {
-            FeatureEdit target = new FeatureEdit();
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
-        }
-
         /// <summary>
         ///exportSelectedFeatureToShp 的测试
         ///</summary>
         [TestMethod()]
         public void exportSelectedFeatureToShpTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            FeatureEdit target = FeatureEdit.getInstance();
             IFeatureLayer featureLayer = null; // TODO: 初始化为适当的值
             ISelectionSet selectionSet = null; // TODO: 初始化为适当的值
             string outName = string.Empty; // TODO: 初始化为适当的值
@@ -106,15 +94,13 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void getFeatureClassFromFileTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
-            string filename = string.Empty; // TODO: 初始化为适当的值
-            string featureClassName = string.Empty; // TODO: 初始化为适当的值
-            string extention = string.Empty; // TODO: 初始化为适当的值
-            IFeatureClass expected = null; // TODO: 初始化为适当的值
+            FeatureEdit target = FeatureEdit.getInstance();
+            string filename = TestInitialize.m_testDataPath + "shapefiles\\airports.shp";
+            string featureClassName = "airports";
+            string extention = "shp";
             IFeatureClass actual;
             actual = target.getFeatureClassFromFile(filename, featureClassName, extention);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            Assert.IsNotNull(actual);
         }
 
         /// <summary>
@@ -123,7 +109,7 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void getFeatureValueTest()
         {
-            FeatureEdit target = new FeatureEdit();
+            FeatureEdit target = FeatureEdit.getInstance();
             
             IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
             IFeature feature = featureClass.GetFeature(0);
@@ -139,14 +125,12 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void getFeatureWorkspaceFromFileTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
-            string filename = string.Empty; // TODO: 初始化为适当的值
-            string extention = string.Empty; // TODO: 初始化为适当的值
-            IFeatureWorkspace expected = null; // TODO: 初始化为适当的值
+            FeatureEdit target = FeatureEdit.getInstance();
+            string filename = TestInitialize.m_testDataPath + "shapefiles\\airports.shp";
+            string extention = "shp";
             IFeatureWorkspace actual;
             actual = target.getFeatureWorkspaceFromFile(filename, extention);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            Assert.IsNotNull(actual);
         }
 
         /// <summary>
@@ -155,13 +139,27 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void getWorkspaceFactoryTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
-            string extension = string.Empty; // TODO: 初始化为适当的值
-            IWorkspaceFactory expected = null; // TODO: 初始化为适当的值
-            IWorkspaceFactory actual;
+            FeatureEdit target = FeatureEdit.getInstance();
+
+            // get shapefile workspace factory
+            string extension = "shp";
+            IWorkspaceFactory actual = target.getWorkspaceFactory(extension);
+            Assert.IsNotNull(actual);
+
+            // get mdb workspace factory
+            extension = "mdb";
             actual = target.getWorkspaceFactory(extension);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            Assert.IsNotNull(actual);
+
+            // get gdb workspace factory
+            extension = "gdb";
+            actual = target.getWorkspaceFactory(extension);
+            Assert.IsNotNull(actual);
+
+            // get mdb workspace factory
+            extension = "mdb";
+            actual = target.getWorkspaceFactory(extension);
+            Assert.IsNotNull(actual);
         }
 
         /// <summary>
@@ -170,7 +168,7 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void setFeatureBufferValueTest()
         {
-            FeatureEdit target = new FeatureEdit(); // TODO: 初始化为适当的值
+            FeatureEdit target = FeatureEdit.getInstance();// TODO: 初始化为适当的值
             IFeatureBuffer feaBuf = null; // TODO: 初始化为适当的值
             string fieldName = string.Empty; // TODO: 初始化为适当的值
             object value = null; // TODO: 初始化为适当的值
@@ -187,7 +185,7 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void setFeatureValueTest()
         {
-            FeatureEdit target = new FeatureEdit();
+            FeatureEdit target = FeatureEdit.getInstance();
 
             IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
             IFeature feature = featureClass.GetFeature(0);
@@ -199,6 +197,42 @@ namespace AO_J_TestProject
             actual = target.setFeatureValue(feature, fieldName, value, save);
             Assert.AreEqual(expected, actual);
             Assert.Inconclusive("验证此测试方法的正确性。");
+        }
+
+        /// <summary>
+        ///equalPoints 的测试
+        ///</summary>
+        [TestMethod()]
+        public void equalPointsTest()
+        {
+            // equal
+            IPoint point1 = new PointClass() { X = 2.356, Y = 3.34 };
+            IPoint point2 = new PointClass() { X = 2.356, Y = 3.34 };
+            double tolerance = 0.0001;
+            bool expected = true; 
+            bool actual = FeatureEdit.equalPoints(point1, point2, tolerance);
+            Assert.AreEqual(expected, actual);
+
+            // not equal
+            IPoint point3 = new PointClass() { X = 2.345, Y = 1.13 };
+            IPoint point4 = new PointClass() { X = 1.234, Y = 2.45 };
+            expected = false;
+            actual = FeatureEdit.equalPoints(point3, point4, tolerance);
+            Assert.AreEqual(expected, actual);
+
+            // use equal Z value
+            IPoint point5 = new PointClass() { X = 2.123, Y = 1.323, Z = 134 };
+            IPoint point6 = new PointClass() { X = 2.123, Y = 1.323, Z = 134 };
+            expected = true;
+            actual = FeatureEdit.equalPoints(point5, point6, tolerance);
+            Assert.AreEqual(expected, actual);
+
+            // use not equal Z value
+            IPoint point7 = new PointClass() { X = 2.123, Y = 1.323, Z = 134 };
+            IPoint point8 = new PointClass() { X = 2.123, Y = 1.323, Z = 136 };
+            expected = false;
+            actual = FeatureEdit.equalPoints(point7, point8, tolerance);
+            Assert.AreEqual(expected, actual);
         }
     }
 }

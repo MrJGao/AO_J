@@ -1,7 +1,6 @@
 ﻿using AO_J;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Text;
 using System.IO;
 
 namespace AO_J_TestProject
@@ -83,7 +82,7 @@ namespace AO_J_TestProject
         {
             string srcDirPath = m_testDataPath + "directory";
             string dstDirPath = m_testResultPath;
-            General.CopyDirectory(srcDirPath, dstDirPath);
+            new General().CopyDirectory(srcDirPath, dstDirPath);
             Assert.IsTrue(Directory.Exists(dstDirPath));
         }
 
@@ -94,7 +93,7 @@ namespace AO_J_TestProject
         public void addSecurityControlTest()
         {
             string filepath = string.Empty; // TODO: 初始化为适当的值
-            General.addSecurityControl(filepath);
+            new General().addSecurityControl(filepath);
             Assert.Inconclusive("无法验证不返回值的方法。");
         }
 

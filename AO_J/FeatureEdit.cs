@@ -1,8 +1,13 @@
-﻿using System;
+﻿using System.Windows.Forms;
+using ESRI.ArcGIS.esriSystem;
+using ESRI.ArcGIS.Geometry;
+using ESRI.ArcGIS.Display;
+using System;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.Carto;
 using System.IO;
 using ESRI.ArcGIS.GeoDatabaseUI;
+using ESRI.ArcGIS.DataSourcesFile;
 
 namespace AO_J
 {
@@ -11,10 +16,37 @@ namespace AO_J
     /// </summary>
     public class FeatureEdit
     {
+        private static FeatureEdit m_singleton = null;
+
+        // 定义一个标识确保线程同步
+        private static readonly object locker = new object();
+
         /// <summary>
-        /// 构造函数，目前不做任何事
+        /// 私有构造函数，目前不做任何事
         /// </summary>
-        public FeatureEdit() {}
+        private FeatureEdit()
+        {
+
+        }
+
+        /// <summary>
+        /// 获取该类静态实例
+        /// </summary>
+        /// <returns></returns>
+        public static FeatureEdit getInstance()
+        {
+            if (m_singleton == null)
+            {
+                lock (locker)
+                {
+                    if (m_singleton == null)
+                    {
+                        m_singleton = new FeatureEdit();
+                    }
+                }
+            }
+            return m_singleton;
+        }
 
         /// <summary>
         /// 根据后缀名获取对应的IWorkspaceFactory对象
@@ -35,6 +67,9 @@ namespace AO_J
                 case "GDB":
                     FactoryType = Type.GetTypeFromProgID("esriDataSourcesGDB.FileGDBWorkspaceFactory");
                     break;
+                case "SHP":
+                    FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+                    break;
                 default:
                     FactoryType = Type.GetTypeFromProgID("esriDataSourcesGDB.FileGDBWorkspaceFactory");
                     break;
@@ -53,7 +88,16 @@ namespace AO_J
         public IFeatureWorkspace getFeatureWorkspaceFromFile(string filename, string extention)
         {
             IWorkspaceFactory workspaceFactory = getWorkspaceFactory(extention);
-            IFeatureWorkspace featureWorkspace = workspaceFactory.OpenFromFile(filename, 0) as IFeatureWorkspace;
+            IFeatureWorkspace featureWorkspace = null;
+
+            if (extention.ToUpper() == "SHP")
+            {
+                featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(filename), 0) as IFeatureWorkspace;
+            }
+            else
+            {
+                featureWorkspace = workspaceFactory.OpenFromFile(filename, 0) as IFeatureWorkspace;
+            }
             return featureWorkspace;
         }
 
@@ -66,8 +110,7 @@ namespace AO_J
         /// <returns>要素类对象</returns>
         public IFeatureClass getFeatureClassFromFile(string filename, string featureClassName, string extention)
         {
-            IWorkspaceFactory workspaceFactory = getWorkspaceFactory(extention);
-            IFeatureWorkspace featureWorkspace = workspaceFactory.OpenFromFile(filename, 0) as IFeatureWorkspace;
+            IFeatureWorkspace featureWorkspace = getFeatureWorkspaceFromFile(filename, extention);
 
             IFeatureClass featureClass = null;
             if (featureWorkspace != null)
@@ -156,7 +199,7 @@ namespace AO_J
         public void exportSelectedFeatureToShp(IFeatureLayer featureLayer, ISelectionSet selectionSet, string outName)
         {
             if (featureLayer == null) return;
-            if (!Directory.Exists(Path.GetDirectoryName(outName))) return;
+            if (!Directory.Exists(System.IO.Path.GetDirectoryName(outName))) return;
 
             // 裁剪要素
             IDataset dataset = featureLayer as IDataset;
@@ -171,15 +214,44 @@ namespace AO_J
 
             // 输出文件
             IDatasetName outDatasetName = outFeatClassName as IDatasetName;
-            outDatasetName.Name = Path.GetFileNameWithoutExtension(outName);
+            outDatasetName.Name = System.IO.Path.GetFileNameWithoutExtension(outName);
             IWorkspaceName workspaceName = new WorkspaceName() as IWorkspaceName;
-            workspaceName.PathName = Path.GetDirectoryName(outName);
+            workspaceName.PathName = System.IO.Path.GetDirectoryName(outName);
             workspaceName.WorkspaceFactoryProgID = "esriDataSourcesGDB.ShapefileWorkspaceFactory";
             outDatasetName.WorkspaceName = workspaceName;
 
             // 导出
             IExportOperation exportOper = new ExportOperation();
             exportOper.ExportFeatureClass(datasetName, null, selectionSet, null, outFeatClassName, 0);
+        }
+
+        /// <summary>
+        /// 判断两个点对象是否相等
+        /// </summary>
+        /// <param name="point1">第一个点</param>
+        /// <param name="point2">第二个点</param>
+        /// <param name="tolerance">精度控制</param>
+        /// <returns>相等返回true，否则返回false</returns>
+        public static bool equalPoints(ESRI.ArcGIS.Geometry.IPoint point1, ESRI.ArcGIS.Geometry.IPoint point2, double tolerance)
+        {
+            if ((Math.Abs(point1.X - point2.X) <= tolerance) &&
+                (Math.Abs(point1.Y - point2.Y) <= tolerance))
+            {
+                if (!double.IsNaN(point1.Z) && !double.IsNaN(point2.Z))
+                {
+                    if (Math.Abs(point1.Z - point2.Z) <= tolerance)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            return false;
         }
     }
 }
