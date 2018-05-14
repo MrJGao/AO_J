@@ -234,5 +234,15 @@ namespace AO_J_TestProject
             actual = FeatureEdit.equalPoints(point7, point8, tolerance);
             Assert.AreEqual(expected, actual);
         }
+
+        /// <summary>
+        ///getInstance 的测试
+        ///</summary>
+        [TestMethod()]
+        public void getFeatureEditInstanceTest()
+        {
+            FeatureEdit fe = FeatureEdit.getInstance();
+            Assert.IsNotNull(fe);
+        }
     }
 }

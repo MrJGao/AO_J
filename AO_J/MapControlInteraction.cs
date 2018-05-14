@@ -13,10 +13,34 @@ namespace AO_J
     /// </summary>
     public class MapControlInteraction
     {
+        private static MapControlInteraction m_singleton = null;
+
+        // 定义一个标识确保线程同步
+        private static readonly object locker = new object();
+
         /// <summary>
-        /// 构造函数，目前不做任何事
+        /// 私有构造函数，目前不做任何事
         /// </summary>
-        public MapControlInteraction() { }
+        private MapControlInteraction() { }
+
+        /// <summary>
+        /// 获取该类静态实例
+        /// </summary>
+        /// <returns></returns>
+        public static MapControlInteraction getInstance()
+        {
+            if (m_singleton == null)
+            {
+                lock (locker)
+                {
+                    if (m_singleton == null)
+                    {
+                        m_singleton = new MapControlInteraction();
+                    }
+                }
+            }
+            return m_singleton;
+        }
 
         /// <summary>
         /// 根据图层名称获取图层对象

@@ -9,10 +9,34 @@ namespace AO_J
     /// </summary>
     public class GpOperation
     {
+        private static GpOperation m_singleton = null;
+
+        // 定义一个标识确保线程同步
+        private static readonly object locker = new object();
+
         /// <summary>
-        /// 构造函数，目前不做任何事
+        /// 私有构造函数，目前不做任何事
         /// </summary>
-        public GpOperation() { }
+        private GpOperation() { }
+
+        /// <summary>
+        /// 获取该类静态实例
+        /// </summary>
+        /// <returns></returns>
+        public static GpOperation getInstance()
+        {
+            if (m_singleton == null)
+            {
+                lock (locker)
+                {
+                    if (m_singleton == null)
+                    {
+                        m_singleton = new GpOperation();
+                    }
+                }
+            }
+            return m_singleton;
+        }
 
         /// <summary>
         /// 裁剪矢量图层

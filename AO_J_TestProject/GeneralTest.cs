@@ -63,57 +63,14 @@ namespace AO_J_TestProject
         
         #endregion
 
-
         /// <summary>
-        ///General 构造函数 的测试
+        ///getInstance 的测试
         ///</summary>
         [TestMethod()]
-        public void GeneralConstructorTest()
+        public void getGeneralInstanceTest()
         {
-            General target = new General();
-            Assert.IsNotNull(target);
+            General g = General.getInstance();
+            Assert.IsNotNull(g);
         }
-
-        /// <summary>
-        ///CopyDirectory 的测试
-        ///</summary>
-        [TestMethod()]
-        public void CopyDirectoryTest()
-        {
-            string srcDirPath = m_testDataPath + "directory";
-            string dstDirPath = m_testResultPath;
-            new General().CopyDirectory(srcDirPath, dstDirPath);
-            Assert.IsTrue(Directory.Exists(dstDirPath));
-        }
-
-        /// <summary>
-        ///addSecurityControl 的测试
-        ///</summary>
-        [TestMethod()]
-        public void addSecurityControlTest()
-        {
-            string filepath = string.Empty; // TODO: 初始化为适当的值
-            new General().addSecurityControl(filepath);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        // 清空路径下所有文件和文件夹
-        private static void deletefileOrDic(System.IO.DirectoryInfo path)
-        {
-            try
-            {
-                foreach (System.IO.DirectoryInfo d in path.GetDirectories())
-                {
-                    d.Delete(true);
-                }
-                foreach (System.IO.FileInfo f in path.GetFiles())
-                {
-                    f.Delete();
-                }
-            }
-            catch (Exception ex)
-            {
-            }
-        }  
     }
 }

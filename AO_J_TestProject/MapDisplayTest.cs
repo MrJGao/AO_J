@@ -68,43 +68,13 @@ namespace AO_J_TestProject
 
 
         /// <summary>
-        ///MapDisplay 构造函数 的测试
+        ///getInstance 的测试
         ///</summary>
         [TestMethod()]
-        public void MapDisplayConstructorTest()
+        public void getMapDisplayInstanceTest()
         {
-            MapDisplay target = new MapDisplay();
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
-        }
-
-        /// <summary>
-        ///ConvertPixelsToMapUnits 的测试
-        ///</summary>
-        [TestMethod()]
-        public void ConvertPixelsToMapUnitsTest()
-        {
-            IActiveView pActiveView = null; // TODO: 初始化为适当的值
-            double pixelUnits = 0F; // TODO: 初始化为适当的值
-            double expected = 0F; // TODO: 初始化为适当的值
-            double actual;
-            actual = MapDisplay.ConvertPixelsToMapUnits(pActiveView, pixelUnits);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///FlashGeometry 的测试
-        ///</summary>
-        [TestMethod()]
-        public void FlashGeometryTest()
-        {
-            MapDisplay target = new MapDisplay(); // TODO: 初始化为适当的值
-            IGeometry geometry = null; // TODO: 初始化为适当的值
-            IRgbColor color = null; // TODO: 初始化为适当的值
-            IDisplay display = null; // TODO: 初始化为适当的值
-            int delay = 0; // TODO: 初始化为适当的值
-            target.FlashGeometry(geometry, color, display, delay);
-            Assert.Inconclusive("无法验证不返回值的方法。");
+            MapDisplay md = MapDisplay.getInstance();
+            Assert.IsNotNull(md);
         }
     }
 }

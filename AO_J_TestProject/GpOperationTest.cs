@@ -63,29 +63,14 @@ namespace AO_J_TestProject
         //
         #endregion
 
-
         /// <summary>
-        ///GpOperation 构造函数 的测试
+        ///getInstance 的测试
         ///</summary>
         [TestMethod()]
-        public void GpOperationConstructorTest()
+        public void getGpOperationInstanceTest()
         {
-            GpOperation target = new GpOperation();
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
-        }
-
-        /// <summary>
-        ///clipLayers 的测试
-        ///</summary>
-        [TestMethod()]
-        public void clipLayersTest()
-        {
-            GpOperation target = new GpOperation(); // TODO: 初始化为适当的值
-            string clipFilename = string.Empty; // TODO: 初始化为适当的值
-            string inputFilename = string.Empty; // TODO: 初始化为适当的值
-            string outputFilename = string.Empty; // TODO: 初始化为适当的值
-            target.clipLayers(clipFilename, inputFilename, outputFilename);
-            Assert.Inconclusive("无法验证不返回值的方法。");
+            GpOperation go = GpOperation.getInstance();
+            Assert.IsNotNull(go);
         }
     }
 }

@@ -67,79 +67,14 @@ namespace AO_J_TestProject
         //
         #endregion
 
-
         /// <summary>
-        ///MapControlInteraction 构造函数 的测试
+        ///getInstance 的测试
         ///</summary>
         [TestMethod()]
-        public void MapControlInteractionConstructorTest()
+        public void getMapControlInteractionInstanceTest()
         {
-            MapControlInteraction target = new MapControlInteraction();
-            Assert.Inconclusive("TODO: 实现用来验证目标的代码");
-        }
-
-        /// <summary>
-        ///addWMSLayer 的测试
-        ///</summary>
-        [TestMethod()]
-        public void addWMSLayerTest()
-        {
-            MapControlInteraction target = new MapControlInteraction(); // TODO: 初始化为适当的值
-            IMap map = null; // TODO: 初始化为适当的值
-            string address = string.Empty; // TODO: 初始化为适当的值
-            string layerName = string.Empty; // TODO: 初始化为适当的值
-            int layerPosition = 0; // TODO: 初始化为适当的值
-            target.addWMSLayer(map, address, layerName, layerPosition);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
-        ///getLayerByName 的测试
-        ///</summary>
-        [TestMethod()]
-        public void getLayerByNameTest()
-        {
-            MapControlInteraction target = new MapControlInteraction(); // TODO: 初始化为适当的值
-            string name = string.Empty; // TODO: 初始化为适当的值
-            IMap map = null; // TODO: 初始化为适当的值
-            IEditor editor = null; // TODO: 初始化为适当的值
-            ILayer expected = null; // TODO: 初始化为适当的值
-            ILayer actual;
-            actual = target.getLayerByName(name, map, editor);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///getLayerByName 的测试
-        ///</summary>
-        [TestMethod()]
-        public void getLayerByNameTest1()
-        {
-            MapControlInteraction target = new MapControlInteraction(); // TODO: 初始化为适当的值
-            string name = string.Empty; // TODO: 初始化为适当的值
-            IMapControlDefault mapControl = null; // TODO: 初始化为适当的值
-            ILayer expected = null; // TODO: 初始化为适当的值
-            ILayer actual;
-            actual = target.getLayerByName(name, mapControl);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///getlayerbygroup 的测试
-        ///</summary>
-        [TestMethod()]
-        public void getlayerbygroupTest()
-        {
-            MapControlInteraction target = new MapControlInteraction(); // TODO: 初始化为适当的值
-            ICompositeLayer temp_grouplayer = null; // TODO: 初始化为适当的值
-            List<ILayer> result = null; // TODO: 初始化为适当的值
-            List<ILayer> expected = null; // TODO: 初始化为适当的值
-            List<ILayer> actual;
-            actual = target.getlayerbygroup(temp_grouplayer, result);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            MapControlInteraction mci = MapControlInteraction.getInstance();
+            Assert.IsNotNull(mci);
         }
     }
 }
