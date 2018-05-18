@@ -232,7 +232,7 @@ namespace AO_J
         /// <param name="point2">第二个点</param>
         /// <param name="tolerance">精度控制</param>
         /// <returns>相等返回true，否则返回false</returns>
-        public static bool equalPoints(ESRI.ArcGIS.Geometry.IPoint point1, ESRI.ArcGIS.Geometry.IPoint point2, double tolerance)
+        public bool equalPoints(ESRI.ArcGIS.Geometry.IPoint point1, ESRI.ArcGIS.Geometry.IPoint point2, double tolerance)
         {
             if ((Math.Abs(point1.X - point2.X) <= tolerance) &&
                 (Math.Abs(point1.Y - point2.Y) <= tolerance))

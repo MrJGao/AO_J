@@ -205,33 +205,34 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void equalPointsTest()
         {
+            FeatureEdit fe = FeatureEdit.getInstance();
             // equal
             IPoint point1 = new PointClass() { X = 2.356, Y = 3.34 };
             IPoint point2 = new PointClass() { X = 2.356, Y = 3.34 };
             double tolerance = 0.0001;
             bool expected = true; 
-            bool actual = FeatureEdit.equalPoints(point1, point2, tolerance);
+            bool actual = fe.equalPoints(point1, point2, tolerance);
             Assert.AreEqual(expected, actual);
 
             // not equal
             IPoint point3 = new PointClass() { X = 2.345, Y = 1.13 };
             IPoint point4 = new PointClass() { X = 1.234, Y = 2.45 };
             expected = false;
-            actual = FeatureEdit.equalPoints(point3, point4, tolerance);
+            actual = fe.equalPoints(point3, point4, tolerance);
             Assert.AreEqual(expected, actual);
 
             // use equal Z value
             IPoint point5 = new PointClass() { X = 2.123, Y = 1.323, Z = 134 };
             IPoint point6 = new PointClass() { X = 2.123, Y = 1.323, Z = 134 };
             expected = true;
-            actual = FeatureEdit.equalPoints(point5, point6, tolerance);
+            actual = fe.equalPoints(point5, point6, tolerance);
             Assert.AreEqual(expected, actual);
 
             // use not equal Z value
             IPoint point7 = new PointClass() { X = 2.123, Y = 1.323, Z = 134 };
             IPoint point8 = new PointClass() { X = 2.123, Y = 1.323, Z = 136 };
             expected = false;
-            actual = FeatureEdit.equalPoints(point7, point8, tolerance);
+            actual = fe.equalPoints(point7, point8, tolerance);
             Assert.AreEqual(expected, actual);
         }
 
