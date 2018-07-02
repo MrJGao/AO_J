@@ -245,5 +245,63 @@ namespace AO_J_TestProject
             FeatureEdit fe = FeatureEdit.getInstance();
             Assert.IsNotNull(fe);
         }
+
+        /// <summary>
+        ///equalGeometry 的测试
+        ///</summary>
+        [TestMethod()]
+        public void equalGeometryTest()
+        {
+            FeatureEdit fe = FeatureEdit.getInstance();
+            
+            // 测试两个相同的几何对象
+            IGeometry geo1 = new PolylineClass();
+            IPointCollection pc1 = geo1 as IPointCollection;
+            pc1.AddPoint(new PointClass() { X = 1.2, Y = 2.3 });
+            pc1.AddPoint(new PointClass() { X = 1.4, Y = 2.5 });
+            pc1.AddPoint(new PointClass() { X = 1.1, Y = 2.8 });
+
+            IGeometry geo2 = new PolylineClass();
+            IPointCollection pc2 = geo2 as IPointCollection;
+            pc2.AddPoint(new PointClass() { X = 1.2, Y = 2.3 });
+            pc2.AddPoint(new PointClass() { X = 1.4, Y = 2.5 });
+            pc2.AddPoint(new PointClass() { X = 1.1, Y = 2.8 });
+
+            bool actual = fe.equalGeometry(geo1, geo2);
+            Assert.IsTrue(actual);
+            
+            // 测试两个不同的几何对象
+            IGeometry geo3 = new PolylineClass();
+            IPointCollection pc3 = geo3 as IPointCollection;
+            pc3.AddPoint(new PointClass() { X = 1.1, Y = 2.8 });
+            pc3.AddPoint(new PointClass() { X = 1.4, Y = 2.5 });
+            pc3.AddPoint(new PointClass() { X = 1.1, Y = 2.8 });
+
+            actual = fe.equalGeometry(geo1, geo3);
+            Assert.IsFalse(actual);
+        }
+
+
+        /// <summary>
+        ///equalFeature 的测试
+        ///</summary>
+        [TestMethod()]
+        public void equalFeatureTest()
+        {
+            FeatureEdit fe = FeatureEdit.getInstance();
+
+            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            IFeature f1 = featureClass.GetFeature(0);
+            IFeature f2 = featureClass.CreateFeature();
+            f2.Shape = f1.ShapeCopy;
+            for (int i = 1; i < f1.Fields.FieldCount; i++)
+            {
+                f2.set_Value(i, f1.get_Value(i));
+            }
+            Assert.IsTrue(fe.equalFeature(f1, f2));
+            // 最后删除掉这个新建的测试要素
+            f2.Delete();
+
+        }
     }
 }
