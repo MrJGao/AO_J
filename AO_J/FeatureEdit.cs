@@ -8,6 +8,7 @@ using ESRI.ArcGIS.Carto;
 using System.IO;
 using ESRI.ArcGIS.GeoDatabaseUI;
 using ESRI.ArcGIS.DataSourcesFile;
+using System.Collections.Generic;
 
 namespace AO_J
 {
@@ -307,8 +308,9 @@ namespace AO_J
         /// </summary>
         /// <param name="f1">第一个要素对象</param>
         /// <param name="f2">另一个要素对象</param>
+        /// <param name="ignoreFields">忽略的字段列表</param>
         /// <returns>相等返回true，否则返回false</returns>
-        public bool equalFeature(IFeature f1, IFeature f2)
+        public bool equalFeature(IFeature f1, IFeature f2, List<string> ignoreFields = null)
         {
             bool res = true;
 
@@ -324,16 +326,92 @@ namespace AO_J
                 // i start from 1 to skip OID field
                 for (int i = 1; i < f1.Fields.FieldCount; i++)
                 {
-                    object val1 = f1.get_Value(i);
-                    object val2 = f2.get_Value(i);
-                    if (val1.ToString() != val2.ToString())
+                    if (ignoreFields != null && ignoreFields.Contains(f1.Fields.Field[i].Name) == false)
                     {
-                        return false;
+                        object val1 = f1.get_Value(i);
+                        object val2 = f2.get_Value(i);
+                        if (val1.ToString() != val2.ToString())
+                        {
+                            return false;
+                        }
                     }
                 }
             }
 
             return res;
+        }
+
+        /// <summary>
+        /// FeatureClass格式转换
+        /// </summary>
+        /// <param name="sourceWorkspace">原始工作空间</param>
+        /// <param name="targetWorkspace">目标工作空间</param>
+        /// <param name="nameOfSourceFeatureClass">原始FeatureClass名称</param>
+        /// <param name="nameOfTargetFeatureClass">目标FeatureClass名称</param>
+        /// <param name="pQueryFilter"></param>
+        public static void convertFeatureClass(IWorkspace sourceWorkspace, IWorkspace targetWorkspace,
+            string nameOfSourceFeatureClass, string nameOfTargetFeatureClass, IQueryFilter pQueryFilter)
+        {
+            //create source workspace name
+            IDataset sourceWorkspaceDataset = (IDataset)sourceWorkspace;
+            IWorkspaceName sourceWorkspaceName = (IWorkspaceName)sourceWorkspaceDataset.FullName;
+
+            //create source dataset name
+            IFeatureClassName sourceFeatureClassName = new FeatureClassNameClass();
+            IDatasetName sourceDatasetName = (IDatasetName)sourceFeatureClassName;
+            sourceDatasetName.WorkspaceName = sourceWorkspaceName;
+            sourceDatasetName.Name = nameOfSourceFeatureClass;
+
+            //create target workspace name
+            IDataset targetWorkspaceDataset = (IDataset)targetWorkspace;
+            IWorkspaceName targetWorkspaceName = (IWorkspaceName)targetWorkspaceDataset.FullName;
+
+            //create target dataset name
+            IFeatureClassName targetFeatureClassName = new FeatureClassNameClass();
+            IDatasetName targetDatasetName = (IDatasetName)targetFeatureClassName;
+            targetDatasetName.WorkspaceName = targetWorkspaceName;
+            targetDatasetName.Name = nameOfTargetFeatureClass;
+
+            //Open input Featureclass to get field definitions.
+            ESRI.ArcGIS.esriSystem.IName sourceName = (ESRI.ArcGIS.esriSystem.IName)sourceFeatureClassName;
+            IFeatureClass sourceFeatureClass = (IFeatureClass)sourceName.Open();
+
+            //Validate the field names because you are converting between different workspace types.
+            IFieldChecker fieldChecker = new FieldCheckerClass();
+            IFields targetFeatureClassFields;
+            IFields sourceFeatureClassFields = sourceFeatureClass.Fields;
+            IEnumFieldError enumFieldError;
+
+            // Most importantly set the input and validate workspaces!
+            fieldChecker.InputWorkspace = sourceWorkspace;
+            fieldChecker.ValidateWorkspace = targetWorkspace;
+            fieldChecker.Validate(sourceFeatureClassFields, out enumFieldError, out targetFeatureClassFields);
+
+            // Loop through the output fields to find the geomerty field
+            IField geometryField;
+            for (int i = 0; i < targetFeatureClassFields.FieldCount; i++)
+            {
+                if (targetFeatureClassFields.get_Field(i).Type == esriFieldType.esriFieldTypeGeometry)
+                {
+                    geometryField = targetFeatureClassFields.get_Field(i);
+                    // Get the geometry field's geometry defenition
+                    IGeometryDef geometryDef = geometryField.GeometryDef;
+
+                    //Give the geometry definition a spatial index grid count and grid size
+                    IGeometryDefEdit targetFCGeoDefEdit = (IGeometryDefEdit)geometryDef;
+
+                    targetFCGeoDefEdit.GridCount_2 = 1;
+                    targetFCGeoDefEdit.set_GridSize(0, 0); //Allow ArcGIS to determine a valid grid size for the data loaded
+                    targetFCGeoDefEdit.SpatialReference_2 = geometryField.GeometryDef.SpatialReference;
+
+                    // Load the feature class
+                    IFeatureDataConverter fctofc = new FeatureDataConverterClass();
+                    //IEnumInvalidObject enumErrors = fctofc.ConvertFeatureClass(sourceFeatureClassName, queryFilter, null, targetFeatureClassName, geometryDef, targetFeatureClassFields, "", 1000, 0);
+                    IEnumInvalidObject enumErrors = fctofc.ConvertFeatureClass(sourceFeatureClassName, pQueryFilter, null, targetFeatureClassName, geometryDef, targetFeatureClassFields, "", 1000, 0);
+
+                    break;
+                }
+            }
         }
     }
 }
