@@ -9,6 +9,7 @@ using System.IO;
 using ESRI.ArcGIS.GeoDatabaseUI;
 using ESRI.ArcGIS.DataSourcesFile;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace AO_J
 {
@@ -49,26 +50,26 @@ namespace AO_J
             return m_singleton;
         }
 
-        /// <summary>
-        /// 根据后缀名获取对应的IWorkspaceFactory对象
-        /// </summary>
-        /// <param name="extension">数据集文件后缀名</param>
-        /// <returns></returns>
-        public IWorkspaceFactory getWorkspaceFactory(string extension)
-        {
-            extension = extension.ToUpper();
 
+        #region Workspace, FeatureClass...
+        /// <summary>
+        /// 根据数据库类型获取对应的IWorkspaceFactory对象
+        /// </summary>
+        /// <param name="databaseType">数据库类型</param>
+        /// <returns>对应类型的IWorkspaceFactory对象</returns>
+        public IWorkspaceFactory getWorkspaceFactory(DatabaseType databaseType)
+        {
             IWorkspaceFactory pWorkspaceFactory = null;
             Type FactoryType = null;
-            switch (extension)
+            switch (databaseType)
             {
-                case "MDB":
+                case DatabaseType.mdb:
                     FactoryType = Type.GetTypeFromProgID("esriDataSourcesGDB.AccessWorkspaceFactory");
                     break;
-                case "GDB":
+                case DatabaseType.gdb:
                     FactoryType = Type.GetTypeFromProgID("esriDataSourcesGDB.FileGDBWorkspaceFactory");
                     break;
-                case "SHP":
+                case DatabaseType.shapefile:
                     FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
                     break;
                 default:
@@ -81,47 +82,273 @@ namespace AO_J
         }
 
         /// <summary>
-        /// 根据文件名和后缀，直接得到IFeatureWorkspace对象
+        /// 创建数据库
         /// </summary>
-        /// <param name="filename">文件路径</param>
-        /// <param name="extention">后缀</param>
-        /// <returns></returns>
-        public IFeatureWorkspace getFeatureWorkspaceFromFile(string filename, string extention)
+        /// <param name="databaseFullName">数据库完整路径名称</param>
+        /// <returns>数据空间IWorkspace对象</returns>
+        public IWorkspace createDatabase(string databaseFullName)
         {
-            IWorkspaceFactory workspaceFactory = getWorkspaceFactory(extention);
+            string extension = System.IO.Path.GetExtension(databaseFullName);
+            DatabaseType dt = DatabaseType.unknown;
+            switch (extension.ToLower())
+            {
+                case ".gdb":
+                    dt = DatabaseType.gdb;
+                    break;
+                case ".mdb":
+                    dt = DatabaseType.mdb;
+                    break;
+            }
+
+            IWorkspaceFactory workspaceFactory = getWorkspaceFactory(dt);
+            IWorkspace workspace = null;
+            if (dt == DatabaseType.gdb)
+            {
+                if (System.IO.Directory.Exists(databaseFullName))
+                {
+                    workspace = workspaceFactory.OpenFromFile(databaseFullName, 0);
+                    return workspace;
+                }
+            }
+            else if (dt == DatabaseType.mdb)
+            {
+                if (File.Exists(databaseFullName))
+                {
+                    workspace = workspaceFactory.OpenFromFile(databaseFullName, 0);
+                    return workspace;
+                }
+            }
+
+            string databaseName = System.IO.Path.GetFileNameWithoutExtension(databaseFullName);
+            string databaseDirectory = System.IO.Path.GetDirectoryName(databaseFullName);
+            if (databaseName == "") return null;
+            IWorkspaceName workspaceName = workspaceFactory.Create(databaseDirectory, databaseName, null, 0);
+            ESRI.ArcGIS.esriSystem.IName name = workspaceName as ESRI.ArcGIS.esriSystem.IName;
+            workspace = (IWorkspace)name.Open();
+
+            Marshal.ReleaseComObject(workspaceFactory);
+            return workspace;
+        }
+
+        /// <summary>
+        /// 根据数据库类型，直接得到IFeatureWorkspace对象
+        /// </summary>
+        /// <param name="databaseFullName">文件路径</param>
+        /// <returns>要素工作空间IFeatureWorkspace对象</returns>
+        public IFeatureWorkspace getFeatureWorkspaceFromFile(string databaseFullName)
+        {
+            string extension = System.IO.Path.GetExtension(databaseFullName);
+            DatabaseType dt = DatabaseType.unknown;
+            switch (extension.ToLower())
+            {
+                case ".gdb":
+                    dt = DatabaseType.gdb;
+                    break;
+                case ".mdb":
+                    dt = DatabaseType.mdb;
+                    break;
+                case ".shp":
+                    dt = DatabaseType.shapefile;
+                    break;
+            }
+
+            IWorkspaceFactory workspaceFactory = getWorkspaceFactory(dt);
             IFeatureWorkspace featureWorkspace = null;
 
-            if (extention.ToUpper() == "SHP")
+            if (dt == DatabaseType.shapefile)
             {
-                featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(filename), 0) as IFeatureWorkspace;
+                featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(databaseFullName), 0) as IFeatureWorkspace;
             }
             else
             {
-                featureWorkspace = workspaceFactory.OpenFromFile(filename, 0) as IFeatureWorkspace;
+                featureWorkspace = workspaceFactory.OpenFromFile(databaseFullName, 0) as IFeatureWorkspace;
             }
+            Marshal.ReleaseComObject(workspaceFactory);
             return featureWorkspace;
         }
 
         /// <summary>
         /// 根据文件名、后缀、要素类名称，直接得到IfeatureClass对象
         /// </summary>
-        /// <param name="filename">文件路径</param>
+        /// <param name="databaseFullName">数据库文件路径</param>
         /// <param name="featureClassName">要素类名称</param>
-        /// <param name="extention">后缀</param>
         /// <returns>要素类对象</returns>
-        public IFeatureClass getFeatureClassFromFile(string filename, string featureClassName, string extention)
+        public IFeatureClass getFeatureClassFromFile(string databaseFullName, string featureClassName)
         {
-            IFeatureWorkspace featureWorkspace = getFeatureWorkspaceFromFile(filename, extention);
+            IFeatureWorkspace featureWorkspace = getFeatureWorkspaceFromFile(databaseFullName);
 
             IFeatureClass featureClass = null;
             if (featureWorkspace != null)
             {
                 featureClass = featureWorkspace.OpenFeatureClass(featureClassName);
             }
-
+            Marshal.ReleaseComObject(featureWorkspace);
             return featureClass;
         }
 
+        /// <summary>
+        /// 创建要素类
+        /// </summary>
+        /// <param name="workspace">工作空间</param>
+        /// <param name="featureDataset">要素数据集</param>
+        /// <param name="featureClassName">要素类名称</param>
+        /// <param name="geometryType">要素类几何类型</param>
+        /// <param name="spatialrefrence">空间参考</param>
+        /// <returns>要素类对象</returns>
+        public IFeatureClass createFeatureClass(ESRI.ArcGIS.Geodatabase.IWorkspace workspace,
+            ESRI.ArcGIS.Geodatabase.IFeatureDataset featureDataset, System.String featureClassName, esriGeometryType geometryType, ISpatialReference spatialrefrence)
+        {
+            IWorkspace2 workspace2 = workspace as IWorkspace2;
+            if (workspace2 == null) return null;
+
+            ESRI.ArcGIS.esriSystem.UID CLSID = null;
+            ESRI.ArcGIS.esriSystem.UID CLSEXT = null;
+            System.String strConfigKeyword = null;
+            if (featureClassName == "") return null; // name was not passed in 
+
+            ESRI.ArcGIS.Geodatabase.IFeatureClass featureClass;
+            ESRI.ArcGIS.Geodatabase.IFeatureWorkspace featureWorkspace = (ESRI.ArcGIS.Geodatabase.IFeatureWorkspace)workspace; // Explicit Cast
+
+            if (workspace2.get_NameExists(ESRI.ArcGIS.Geodatabase.esriDatasetType.esriDTFeatureClass, featureClassName)) //feature class with that name already exists 
+            {
+                featureClass = featureWorkspace.OpenFeatureClass(featureClassName);
+                return featureClass;
+            }
+
+            // assign the class id value if not assigned
+            if (CLSID == null)
+            {
+                CLSID = new ESRI.ArcGIS.esriSystem.UIDClass();
+                CLSID.Value = "esriGeoDatabase.Feature";
+            }
+
+            ESRI.ArcGIS.Geodatabase.IObjectClassDescription objectClassDescription = new ESRI.ArcGIS.Geodatabase.FeatureClassDescriptionClass();
+            ESRI.ArcGIS.Geodatabase.IFields fields = null;
+            // if a fields collection is not passed in then supply our own
+
+            if (fields == null)
+            {
+                // create the fields using the required fields method
+                fields = objectClassDescription.RequiredFields;
+                ESRI.ArcGIS.Geodatabase.IFieldsEdit fieldsEdit = (ESRI.ArcGIS.Geodatabase.IFieldsEdit)fields; // Explicit Cast
+                fields = (ESRI.ArcGIS.Geodatabase.IFields)fieldsEdit; // Explicit Cast
+            }
+
+            System.String strShapeField = "";
+
+            // locate the shape field
+            for (int j = 0; j < fields.FieldCount; j++)
+            {
+                if (fields.get_Field(j).Type == ESRI.ArcGIS.Geodatabase.esriFieldType.esriFieldTypeGeometry)
+                {
+                    strShapeField = fields.get_Field(j).Name;
+                }
+            }
+
+            IField field = fields.get_Field(fields.FindField(strShapeField));
+            IGeometryDef geometryDef = field.GeometryDef;
+            IGeometryDefEdit geometryDefEdit = (IGeometryDefEdit)geometryDef;
+            geometryDefEdit.GeometryType_2 = geometryType;
+            if (spatialrefrence == null) // default spatial reference is WGS_1984
+            {
+                ISpatialReferenceFactory pSpatialReferenceFactory = new SpatialReferenceEnvironmentClass();
+                spatialrefrence = pSpatialReferenceFactory.CreateGeographicCoordinateSystem((int)esriSRGeoCSType.esriSRGeoCS_WGS1984);
+            }
+            geometryDefEdit.SpatialReference_2 = spatialrefrence;
+
+            // Use IFieldChecker to create a validated fields collection.
+            ESRI.ArcGIS.Geodatabase.IFieldChecker fieldChecker = new ESRI.ArcGIS.Geodatabase.FieldCheckerClass();
+            ESRI.ArcGIS.Geodatabase.IEnumFieldError enumFieldError = null;
+            ESRI.ArcGIS.Geodatabase.IFields validatedFields = null;
+            fieldChecker.ValidateWorkspace = (ESRI.ArcGIS.Geodatabase.IWorkspace)workspace;
+            fieldChecker.Validate(fields, out enumFieldError, out validatedFields);
+
+            // finally create and return the feature class
+            if (featureDataset == null)// if no feature dataset passed in, create at the workspace level
+            {
+                featureClass = featureWorkspace.CreateFeatureClass(featureClassName, validatedFields, CLSID, CLSEXT, ESRI.ArcGIS.Geodatabase.esriFeatureType.esriFTSimple, strShapeField, strConfigKeyword);
+            }
+            else
+            {
+                featureClass = featureDataset.CreateFeatureClass(featureClassName, validatedFields, CLSID, CLSEXT, ESRI.ArcGIS.Geodatabase.esriFeatureType.esriFTSimple, strShapeField, strConfigKeyword);
+            }
+            return featureClass;
+        }
+
+        /// <summary>
+        /// 创建数据表
+        /// </summary>
+        /// <param name="workspace">工作空间</param>
+        /// <param name="tableName">数据表名称</param>
+        /// <returns>表格对象</returns>
+        public ITable createTable(IWorkspace workspace, string tableName)
+        {
+            IWorkspace2 workspace2 = workspace as IWorkspace2;
+            if (workspace2 == null) return null;
+
+            ITable table = null;
+            IDatasetName dn = null;
+            IEnumDatasetName edn = workspace.get_DatasetNames(esriDatasetType.esriDTAny);
+            bool isExist = false;
+            while ((dn = edn.Next()) != null)
+            {
+                if (dn.Name == tableName)
+                {
+                    isExist = true;
+                    break;
+                }
+            }
+            if (isExist)
+            {
+                table = (workspace as IFeatureWorkspace).OpenTable(tableName);
+            }
+            else
+            {
+                // create the behavior clasid for the featureclass
+                ESRI.ArcGIS.esriSystem.UID uid = new ESRI.ArcGIS.esriSystem.UIDClass();
+                IFeatureWorkspace featureWorkspace = (IFeatureWorkspace)workspace; // Explicit Cast
+
+                uid.Value = "esriGeoDatabase.Object";
+                IObjectClassDescription objectClassDescription = new ObjectClassDescriptionClass();
+
+                IFields fields = objectClassDescription.RequiredFields;
+                // Use IFieldChecker to create a validated fields collection.
+                IFieldChecker fieldChecker = new FieldCheckerClass();
+                IEnumFieldError enumFieldError = null;
+                IFields validatedFields = null;
+                fieldChecker.ValidateWorkspace = (IWorkspace)workspace;
+                fieldChecker.Validate(fields, out enumFieldError, out validatedFields);
+
+                // create and return the table
+                table = featureWorkspace.CreateTable(tableName, validatedFields, uid, null, "");
+            }
+            return table;
+        }
+
+        /// <summary>
+        /// 添加新字段
+        /// </summary>
+        /// <param name="featureClass">要素类</param>
+        /// <param name="fieldName">字段名称</param>
+        /// <param name="FieldType">字段类型</param>
+        /// <param name="fieldLength">字段长度</param>
+        public void addField(IFeatureClass featureClass, string fieldName, esriFieldType FieldType, int fieldLength)
+        {
+            //若存在，则不需添加
+            if (featureClass.Fields.FindField(fieldName) > -1) return;
+            IField pField = new FieldClass();
+            IFieldEdit pFieldEdit = pField as IFieldEdit;
+            pFieldEdit.AliasName_2 = fieldName;
+            pFieldEdit.Name_2 = fieldName;
+            pFieldEdit.Type_2 = FieldType;
+            pFieldEdit.Length_2 = fieldLength;
+
+            IClass pClass = featureClass as IClass;
+            pClass.AddField(pField);
+        }
+        # endregion Workspace, FeatureClass...
+
+        #region Feature value
         /// <summary>
         /// 得到要素的属性值
         /// </summary>
@@ -190,14 +417,16 @@ namespace AO_J
 
             return true;
         }
+        #endregion Feature value
 
         /// <summary>
-        /// 导出图层中选定要素到单独的shp文件
+        /// 导出图层中要素到单独的shp文件
         /// </summary>
         /// <param name="featureLayer">要素图层</param>
+        /// <param name="queryFilter">要素筛选器</param>
         /// <param name="selectionSet">要素选择集</param>
         /// <param name="outName">输出shp文件路径</param>
-        public void exportSelectedFeatureToShp(IFeatureLayer featureLayer, ISelectionSet selectionSet, string outName)
+        public void exportFeaturesToShp(IFeatureLayer featureLayer, IQueryFilter queryFilter, ISelectionSet selectionSet, string outName)
         {
             if (featureLayer == null) return;
             if (!Directory.Exists(System.IO.Path.GetDirectoryName(outName))) return;
@@ -223,7 +452,7 @@ namespace AO_J
 
             // 导出
             IExportOperation exportOper = new ExportOperation();
-            exportOper.ExportFeatureClass(datasetName, null, selectionSet, null, outFeatClassName, 0);
+            exportOper.ExportFeatureClass(datasetName, queryFilter, selectionSet, null, outFeatClassName, 0);
         }
 
         /// <summary>

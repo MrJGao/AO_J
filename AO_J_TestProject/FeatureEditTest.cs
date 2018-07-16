@@ -4,7 +4,6 @@ using ESRI.ArcGIS.Carto;
 using ESRI.ArcGIS.Geodatabase;
 using System;
 using System.Runtime.InteropServices;
-using System.IO;
 using ESRI.ArcGIS.Geometry;
 
 namespace AO_J_TestProject
@@ -75,20 +74,6 @@ namespace AO_J_TestProject
         #endregion
 
         /// <summary>
-        ///exportSelectedFeatureToShp 的测试
-        ///</summary>
-        [TestMethod()]
-        public void exportSelectedFeatureToShpTest()
-        {
-            FeatureEdit target = FeatureEdit.getInstance();
-            IFeatureLayer featureLayer = null; // TODO: 初始化为适当的值
-            ISelectionSet selectionSet = null; // TODO: 初始化为适当的值
-            string outName = string.Empty; // TODO: 初始化为适当的值
-            target.exportSelectedFeatureToShp(featureLayer, selectionSet, outName);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
-
-        /// <summary>
         ///getFeatureClassFromFile 的测试
         ///</summary>
         [TestMethod()]
@@ -97,9 +82,8 @@ namespace AO_J_TestProject
             FeatureEdit target = FeatureEdit.getInstance();
             string filename = TestInitialize.m_testDataPath + "shapefiles\\airports.shp";
             string featureClassName = "airports";
-            string extention = "shp";
             IFeatureClass actual;
-            actual = target.getFeatureClassFromFile(filename, featureClassName, extention);
+            actual = target.getFeatureClassFromFile(filename, featureClassName);
             Assert.IsNotNull(actual);
         }
 
@@ -114,7 +98,7 @@ namespace AO_J_TestProject
             IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
             IFeature feature = featureClass.GetFeature(0);
             string fieldName = "NAME";
-            object expected = "NOATAK";
+            object expected = "AMBLER";
             object actual = target.getFeatureValue(feature, fieldName);
             Assert.AreEqual(expected, actual);
         }
@@ -127,9 +111,8 @@ namespace AO_J_TestProject
         {
             FeatureEdit target = FeatureEdit.getInstance();
             string filename = TestInitialize.m_testDataPath + "shapefiles\\airports.shp";
-            string extention = "shp";
             IFeatureWorkspace actual;
-            actual = target.getFeatureWorkspaceFromFile(filename, extention);
+            actual = target.getFeatureWorkspaceFromFile(filename);
             Assert.IsNotNull(actual);
         }
 
@@ -142,63 +125,18 @@ namespace AO_J_TestProject
             FeatureEdit target = FeatureEdit.getInstance();
 
             // get shapefile workspace factory
-            string extension = "shp";
-            IWorkspaceFactory actual = target.getWorkspaceFactory(extension);
+            IWorkspaceFactory actual = target.getWorkspaceFactory(DatabaseType.shapefile);
             Assert.IsNotNull(actual);
 
             // get mdb workspace factory
-            extension = "mdb";
-            actual = target.getWorkspaceFactory(extension);
+            actual = target.getWorkspaceFactory(DatabaseType.mdb);
             Assert.IsNotNull(actual);
 
             // get gdb workspace factory
-            extension = "gdb";
-            actual = target.getWorkspaceFactory(extension);
-            Assert.IsNotNull(actual);
-
-            // get mdb workspace factory
-            extension = "mdb";
-            actual = target.getWorkspaceFactory(extension);
+            actual = target.getWorkspaceFactory(DatabaseType.gdb);
             Assert.IsNotNull(actual);
         }
-
-        /// <summary>
-        ///setFeatureBufferValue 的测试
-        ///</summary>
-        [TestMethod()]
-        public void setFeatureBufferValueTest()
-        {
-            FeatureEdit target = FeatureEdit.getInstance();// TODO: 初始化为适当的值
-            IFeatureBuffer feaBuf = null; // TODO: 初始化为适当的值
-            string fieldName = string.Empty; // TODO: 初始化为适当的值
-            object value = null; // TODO: 初始化为适当的值
-            bool expected = false; // TODO: 初始化为适当的值
-            bool actual;
-            actual = target.setFeatureBufferValue(feaBuf, fieldName, value);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
-        /// <summary>
-        ///setFeatureValue 的测试
-        ///</summary>
-        [TestMethod()]
-        public void setFeatureValueTest()
-        {
-            FeatureEdit target = FeatureEdit.getInstance();
-
-            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
-            IFeature feature = featureClass.GetFeature(0);
-            string fieldName = string.Empty;
-            object value = null;
-            bool save = false;
-            bool expected = false;
-            bool actual;
-            actual = target.setFeatureValue(feature, fieldName, value, save);
-            Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
-        }
-
+        
         /// <summary>
         ///equalPoints 的测试
         ///</summary>
@@ -281,7 +219,6 @@ namespace AO_J_TestProject
             Assert.IsFalse(actual);
         }
 
-
         /// <summary>
         ///equalFeature 的测试
         ///</summary>
@@ -303,5 +240,78 @@ namespace AO_J_TestProject
             f2.Delete();
 
         }
+
+        /// <summary>
+        ///createDatabase 的测试
+        ///</summary>
+        [TestMethod()]
+        public void createDatabaseTest()
+        {
+            FeatureEdit target = FeatureEdit.getInstance();
+            
+            // gdb
+            string gdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.gdb");
+            IWorkspace gdbWorkspace = target.createDatabase(gdbDatabaseFullName);
+            Assert.IsNotNull(gdbWorkspace);
+            Assert.IsTrue(System.IO.Directory.Exists(gdbDatabaseFullName));
+
+            // mdb
+            string mdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.mdb");
+            IWorkspace mdbWorkspace = target.createDatabase(mdbDatabaseFullName);
+            Assert.IsNotNull(mdbWorkspace);
+            Assert.IsTrue(System.IO.File.Exists(mdbDatabaseFullName));
+        }
+
+        /// <summary>
+        ///createFeatureClass 的测试
+        ///</summary>
+        [TestMethod()]
+        public void createFeatureClassTest()
+        {
+            FeatureEdit target = FeatureEdit.getInstance();
+            string featureClassName = "testfeatureclass";
+            esriGeometryType geometryType = esriGeometryType.esriGeometryPoint;
+            ISpatialReference spatialrefrence = null;
+
+            // gdb
+            string gdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.gdb");
+            IWorkspace gdbWorkspace = target.createDatabase(gdbDatabaseFullName);
+            IFeatureClass gdbFeatureClass = target.createFeatureClass(gdbWorkspace, null, featureClassName, geometryType, spatialrefrence);
+            IFeatureClass gdbFeatureClassValidate = (gdbWorkspace as IFeatureWorkspace).OpenFeatureClass(featureClassName);
+            Assert.IsNotNull(gdbFeatureClassValidate);
+            Assert.IsTrue(gdbFeatureClassValidate.ShapeType == esriGeometryType.esriGeometryPoint);
+
+            // mdb
+            string mdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.mdb");
+            IWorkspace mdbWorkspace = target.createDatabase(mdbDatabaseFullName);
+            IFeatureClass mdbFeatureClass = target.createFeatureClass(mdbWorkspace, null, featureClassName, geometryType, spatialrefrence);
+            IFeatureClass mdbFeatureClassValidate = (mdbWorkspace as IFeatureWorkspace).OpenFeatureClass(featureClassName);
+            Assert.IsNotNull(mdbFeatureClassValidate);
+            Assert.IsTrue(mdbFeatureClassValidate.ShapeType == esriGeometryType.esriGeometryPoint);            
+        }
+
+        /// <summary>
+        ///createTable 的测试
+        ///</summary>
+        [TestMethod()]
+        public void createTableTest()
+        {
+            FeatureEdit target = FeatureEdit.getInstance();
+            string tableName = "testTable";
+            // gdb
+            string gdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.gdb");
+            IWorkspace gdbWorkspace = target.createDatabase(gdbDatabaseFullName);
+            ITable gdbTable = target.createTable(gdbWorkspace, tableName);
+            ITable gdbTableValidate = (gdbWorkspace as IFeatureWorkspace).OpenTable(tableName);
+            Assert.IsNotNull(gdbTableValidate);
+
+            // mdb
+            string mdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.mdb");
+            IWorkspace mdbWorkspace = target.createDatabase(mdbDatabaseFullName);
+            ITable mdbTable = target.createTable(mdbWorkspace, tableName);
+            ITable mdbTableValidate = (mdbWorkspace as IFeatureWorkspace).OpenTable(tableName);
+            Assert.IsNotNull(mdbTableValidate);          
+        }
+
     }
 }

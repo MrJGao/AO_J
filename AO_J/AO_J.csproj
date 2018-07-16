@@ -167,6 +167,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommonType.cs" />
     <Compile Include="FeatureEdit.cs" />
     <Compile Include="General.cs" />
     <Compile Include="GpOperation.cs" />
