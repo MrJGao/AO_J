@@ -15,9 +15,7 @@ namespace AO_J_TestProject
     [TestClass()]
     public class FeatureEditTest
     {
-        private static IWorkspaceFactory m_workspaceFactory = null;
-        private static IFeatureWorkspace m_featureWorkspace = null;
-
+        
         private TestContext testContextInstance;
 
         /// <summary>
@@ -44,33 +42,30 @@ namespace AO_J_TestProject
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            // 打开测试shp数据
-            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
-            m_workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
-            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
-            m_featureWorkspace = m_workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+            
         }
-        
+
         //使用 ClassCleanup 在运行完类中的所有测试后再运行代码
         [ClassCleanup()]
         public static void MyClassCleanup()
         {
-            Marshal.ReleaseComObject(m_featureWorkspace);
-            Marshal.ReleaseComObject(m_workspaceFactory);
+            
         }
         //
         //使用 TestInitialize 在运行每个测试前先运行代码
         [TestInitialize()]
         public void MyTestInitialize()
         {
+            
         }
-        
+
         //使用 TestCleanup 在运行完每个测试后运行代码
         [TestCleanup()]
         public void MyTestCleanup()
         {
+            
         }
-        
+
         #endregion
 
         /// <summary>
@@ -94,13 +89,25 @@ namespace AO_J_TestProject
         public void getFeatureValueTest()
         {
             FeatureEdit target = FeatureEdit.getInstance();
+
+            IWorkspaceFactory workspaceFactory = null;
+            IFeatureWorkspace featureWorkspace = null;
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
             
-            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            IFeatureClass featureClass = featureWorkspace.OpenFeatureClass("airports");
             IFeature feature = featureClass.GetFeature(0);
             string fieldName = "NAME";
             object expected = "AMBLER";
             object actual = target.getFeatureValue(feature, fieldName);
             Assert.AreEqual(expected, actual);
+
+            Marshal.ReleaseComObject(featureWorkspace);
+            Marshal.ReleaseComObject(workspaceFactory);
+            System.GC.Collect();
         }
 
         /// <summary>
@@ -136,7 +143,7 @@ namespace AO_J_TestProject
             actual = target.getWorkspaceFactory(DatabaseType.gdb);
             Assert.IsNotNull(actual);
         }
-        
+
         /// <summary>
         ///equalPoints 的测试
         ///</summary>
@@ -148,7 +155,7 @@ namespace AO_J_TestProject
             IPoint point1 = new PointClass() { X = 2.356, Y = 3.34 };
             IPoint point2 = new PointClass() { X = 2.356, Y = 3.34 };
             double tolerance = 0.0001;
-            bool expected = true; 
+            bool expected = true;
             bool actual = fe.equalPoints(point1, point2, tolerance);
             Assert.AreEqual(expected, actual);
 
@@ -191,7 +198,7 @@ namespace AO_J_TestProject
         public void equalGeometryTest()
         {
             FeatureEdit fe = FeatureEdit.getInstance();
-            
+
             // 测试两个相同的几何对象
             IGeometry geo1 = new PolylineClass();
             IPointCollection pc1 = geo1 as IPointCollection;
@@ -207,7 +214,7 @@ namespace AO_J_TestProject
 
             bool actual = fe.equalGeometry(geo1, geo2);
             Assert.IsTrue(actual);
-            
+
             // 测试两个不同的几何对象
             IGeometry geo3 = new PolylineClass();
             IPointCollection pc3 = geo3 as IPointCollection;
@@ -227,7 +234,15 @@ namespace AO_J_TestProject
         {
             FeatureEdit fe = FeatureEdit.getInstance();
 
-            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            IWorkspaceFactory workspaceFactory = null;
+            IFeatureWorkspace featureWorkspace = null;
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+
+            IFeatureClass featureClass = featureWorkspace.OpenFeatureClass("airports");
             IFeature f1 = featureClass.GetFeature(0);
             IFeature f2 = featureClass.CreateFeature();
             f2.Shape = f1.ShapeCopy;
@@ -239,6 +254,9 @@ namespace AO_J_TestProject
             // 最后删除掉这个新建的测试要素
             f2.Delete();
 
+            Marshal.ReleaseComObject(featureWorkspace);
+            Marshal.ReleaseComObject(workspaceFactory);
+            System.GC.Collect();
         }
 
         /// <summary>
@@ -248,7 +266,7 @@ namespace AO_J_TestProject
         public void createDatabaseTest()
         {
             FeatureEdit target = FeatureEdit.getInstance();
-            
+
             // gdb
             string gdbDatabaseFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "crateTest.gdb");
             IWorkspace gdbWorkspace = target.createDatabase(gdbDatabaseFullName);
@@ -287,7 +305,7 @@ namespace AO_J_TestProject
             IFeatureClass mdbFeatureClass = target.createFeatureClass(mdbWorkspace, null, featureClassName, geometryType, spatialrefrence);
             IFeatureClass mdbFeatureClassValidate = (mdbWorkspace as IFeatureWorkspace).OpenFeatureClass(featureClassName);
             Assert.IsNotNull(mdbFeatureClassValidate);
-            Assert.IsTrue(mdbFeatureClassValidate.ShapeType == esriGeometryType.esriGeometryPoint);            
+            Assert.IsTrue(mdbFeatureClassValidate.ShapeType == esriGeometryType.esriGeometryPoint);
         }
 
         /// <summary>
@@ -310,7 +328,7 @@ namespace AO_J_TestProject
             IWorkspace mdbWorkspace = target.createDatabase(mdbDatabaseFullName);
             ITable mdbTable = target.createTable(mdbWorkspace, tableName);
             ITable mdbTableValidate = (mdbWorkspace as IFeatureWorkspace).OpenTable(tableName);
-            Assert.IsNotNull(mdbTableValidate);          
+            Assert.IsNotNull(mdbTableValidate);
         }
 
     }

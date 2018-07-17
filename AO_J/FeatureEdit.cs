@@ -1,13 +1,9 @@
-﻿using System.Windows.Forms;
-using ESRI.ArcGIS.esriSystem;
-using ESRI.ArcGIS.Geometry;
-using ESRI.ArcGIS.Display;
+﻿using ESRI.ArcGIS.Geometry;
 using System;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.Carto;
 using System.IO;
 using ESRI.ArcGIS.GeoDatabaseUI;
-using ESRI.ArcGIS.DataSourcesFile;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -182,7 +178,7 @@ namespace AO_J
             {
                 featureClass = featureWorkspace.OpenFeatureClass(featureClassName);
             }
-            Marshal.ReleaseComObject(featureWorkspace);
+            //Marshal.ReleaseComObject(featureWorkspace);
             return featureClass;
         }
 

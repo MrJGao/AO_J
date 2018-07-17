@@ -26,9 +26,14 @@ namespace AO_J_TestProject
                 Console.WriteLine("Unable to check-out an ArcInfo license, error code is {0}", licenseStatus);
                 return;
             }
+            aoInitialize.CheckOutExtension(esriLicenseExtensionCode.esriLicenseExtensionCodeSpatialAnalyst);
             #endregion
 
             // 创建测试结果文件夹
+            if (System.IO.Directory.Exists(m_testResultFolder))
+            {
+                System.IO.Directory.Delete(m_testResultFolder);
+            }
             System.IO.Directory.CreateDirectory(m_testResultFolder);
         }
 
