@@ -6,8 +6,6 @@ using ESRI.ArcGIS.Geodatabase;
 
 namespace AO_J_TestProject
 {
-    
-    
     /// <summary>
     ///这是 RasterOperationTest 的测试类，旨在
     ///包含所有 RasterOperationTest 单元测试
@@ -15,8 +13,6 @@ namespace AO_J_TestProject
     [TestClass()]
     public class RasterOperationTest
     {
-
-
         private TestContext testContextInstance;
 
         /// <summary>
@@ -105,6 +101,59 @@ namespace AO_J_TestProject
 
         }
 
-        
+        /// <summary>
+        ///extractRasterAttributeToVector 的测试
+        ///</summary>
+        [TestMethod()]
+        public void extractRasterAttributeToVectorTest()
+        {
+            RasterOperation target = RasterOperation.getInstance();
+            string imgFullName = System.IO.Path.Combine(TestInitialize.m_testDataPath, "raster", "landcover.img");
+            string expression = "VALUE > 1";
+            string outDb = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "RasterAttribute.gdb");
+            bool actual = target.extractRasterAttributeToVector(imgFullName, expression, outDb);
+            Assert.AreEqual(true, actual);
+            
+            // 检查是否创建了要素类
+            IWorkspaceFactory workspaceFactory = Activator.CreateInstance(Type.GetTypeFromProgID("esriDataSourcesGDB.FileGDBWorkspaceFactory")) as IWorkspaceFactory;
+            IWorkspace workspace = workspaceFactory.OpenFromFile(System.IO.Path.Combine(TestInitialize.m_testResultFolder, "RasterAttribute.gdb"), 0);
+            IFeatureClass featureClass = (workspace as IFeatureWorkspace).OpenFeatureClass("landcover");
+            Assert.AreNotEqual(null, featureClass);
+            Assert.AreNotEqual(0, featureClass.FeatureCount(null));
+
+            IWorkspaceFactoryLockControl wflockControl = workspaceFactory as IWorkspaceFactoryLockControl;
+            if (wflockControl.SchemaLockingEnabled)
+            {
+                wflockControl.DisableSchemaLocking();
+            }
+        }
+
+        /// <summary>
+        ///extractRasterByAttribute 的测试
+        ///</summary>
+        [TestMethod()]
+        public void extractRasterByAttributeTest()
+        {
+            RasterOperation target = RasterOperation.getInstance();
+            string imgFullName = System.IO.Path.Combine(TestInitialize.m_testDataPath, "raster", "landcover.img");
+            string expression = "VALUE > 1";
+            string outImgFullName = System.IO.Path.Combine(TestInitialize.m_testResultFolder, "extractRaster.img");
+            bool actual = target.extractRasterByAttribute(imgFullName, expression, outImgFullName, ImgFormat.Imagine);
+            Assert.AreEqual(true, actual);
+            Assert.AreEqual(true, System.IO.File.Exists(outImgFullName));
+        }
+
+        /// <summary>
+        ///extractRasterByAttribute 的测试
+        ///</summary>
+        [TestMethod()]
+        public void extractRasterByAttributeTest1()
+        {
+            RasterOperation target = RasterOperation.getInstance();
+            string imgFullName = System.IO.Path.Combine(TestInitialize.m_testDataPath, "raster", "landcover.img");
+            string expression = "VALUE > 1";
+            IGeoDataset actual = target.extractRasterByAttribute(imgFullName, expression);
+            Assert.AreNotEqual(null, actual);
+        }
     }
 }

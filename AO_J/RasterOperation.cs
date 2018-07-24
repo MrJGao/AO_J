@@ -3,6 +3,7 @@ using ESRI.ArcGIS.SpatialAnalyst;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesRaster;
 using System.Runtime.InteropServices;
+using ESRI.ArcGIS.GeoAnalyst;
 
 namespace AO_J
 {
@@ -43,7 +44,16 @@ namespace AO_J
             }
             return m_singleton;
         }
-
+        
+        /// <summary>
+        /// 影像裁剪
+        /// </summary>
+        /// <param name="imgFullName">影像文件路径</param>
+        /// <param name="clipPolygon">裁剪多边形</param>
+        /// <param name="selectInside">是否裁剪内部</param>
+        /// <param name="outImgFullName">输出结果影像路径</param>
+        /// <param name="outImgFormat">输出影像格式</param>
+        /// <returns>是否执行成功</returns>
         public bool clipRaster(string imgFullName, IPolygon clipPolygon, bool selectInside, string outImgFullName, string outImgFormat)
         {
             IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
@@ -141,6 +151,141 @@ namespace AO_J
                     break;
             }
             return formatStr;
+        }
+
+        /// <summary>
+        /// 根据属性表达式提取栅格
+        /// </summary>
+        /// <param name="imgFullName">影像文件路径</param>
+        /// <param name="expression">表达式</param>
+        /// <returns>地理数据集</returns>
+        public IGeoDataset extractRasterByAttribute(string imgFullName, string expression)
+        {
+            // 打开影像
+            IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
+            IRasterWorkspace rasterWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(imgFullName), 0) as IRasterWorkspace;
+            IRasterDataset rasterDataset = rasterWorkspace.OpenRasterDataset(System.IO.Path.GetFileName(imgFullName));
+
+            // 构建RasterDescriptor
+            IRasterDescriptor rasterDescriptor = new RasterDescriptorClass();
+            IRaster raster = rasterDataset.CreateDefaultRaster();
+            IQueryFilter queryFilter = new QueryFilterClass();
+            queryFilter.WhereClause = expression;
+            rasterDescriptor.Create(raster, queryFilter, "");
+
+            // 提取影像
+            IExtractionOp2 extractionOp = new RasterExtractionOpClass();
+            IGeoDataset extractRes = extractionOp.Attribute(rasterDescriptor);
+
+            Marshal.ReleaseComObject(workspaceFactory);
+            Marshal.ReleaseComObject(rasterWorkspace);
+            Marshal.ReleaseComObject(rasterDataset);
+            Marshal.ReleaseComObject(extractionOp);
+            Marshal.ReleaseComObject(extractRes);
+            System.GC.Collect();
+
+            return extractRes;
+        }
+
+        /// <summary>
+        /// 根据属性表达式提取栅格
+        /// </summary>
+        /// <param name="imgFullName">影像文件路径</param>
+        /// <param name="expression">表达式</param>
+        /// <param name="outImgFullName">输出影像文件路径</param>
+        /// <param name="imgFormat">影像格式</param>
+        /// <returns>是否执行成功</returns>
+        public bool extractRasterByAttribute(string imgFullName, string expression, string outImgFullName, ImgFormat imgFormat)
+        {
+            // 打开影像
+            IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
+            IRasterWorkspace rasterWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(imgFullName), 0) as IRasterWorkspace;
+            IRasterDataset rasterDataset = rasterWorkspace.OpenRasterDataset(System.IO.Path.GetFileName(imgFullName));
+
+            // 构建RasterDescriptor
+            IRasterDescriptor rasterDescriptor = new RasterDescriptorClass();
+            IRaster raster = rasterDataset.CreateDefaultRaster();
+            IQueryFilter queryFilter = new QueryFilterClass();
+            queryFilter.WhereClause = expression;
+            rasterDescriptor.Create(raster, queryFilter, "");
+
+            // 提取影像
+            IExtractionOp2 extractionOp = new RasterExtractionOpClass();
+            IGeoDataset extractRes = extractionOp.Attribute(rasterDescriptor);
+            if (extractRes == null) return false;
+
+            IWorkspace outWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(outImgFullName), 0);
+            ISaveAs2 saveAs = extractRes as ISaveAs2;
+            saveAs.SaveAs(outImgFullName, outWorkspace, this.getImgFormatStr(imgFormat));
+
+            Marshal.ReleaseComObject(workspaceFactory);
+            Marshal.ReleaseComObject(rasterWorkspace);
+            Marshal.ReleaseComObject(rasterDataset);
+            Marshal.ReleaseComObject(extractionOp);
+            Marshal.ReleaseComObject(extractRes);
+            Marshal.ReleaseComObject(outWorkspace);
+            Marshal.ReleaseComObject(saveAs);
+            System.GC.Collect();
+            
+            return true;
+        }
+
+        /// <summary>
+        /// 提取栅格影像
+        /// </summary>
+        /// <param name="imgFullName">影像文件路径</param>
+        /// <param name="expression">表达式</param>
+        /// <param name="outDb">输出矢量数据库路径</param>
+        /// <param name="outFeatureClassName">输出要素类名称（若为空，则自动赋值为影像名称）</param>
+        /// <returns>是否执行成功</returns>
+        public bool extractRasterAttributeToVector(string imgFullName, string expression, string outDb, string outFeatureClassName = "")
+        {
+            // 打开影像
+            IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
+            IRasterWorkspace rasterWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(imgFullName), 0) as IRasterWorkspace;
+            IRasterDataset rasterDataset = rasterWorkspace.OpenRasterDataset(System.IO.Path.GetFileName(imgFullName));
+
+            // 构建RasterDescriptor
+            IRasterDescriptor rasterDescriptor = new RasterDescriptorClass();
+            IRaster raster = rasterDataset.CreateDefaultRaster();
+            IQueryFilter queryFilter = new QueryFilterClass();
+            queryFilter.WhereClause = expression;
+            rasterDescriptor.Create(raster, queryFilter, "");
+
+            // 提取影像
+            IExtractionOp2 extractionOp = new RasterExtractionOpClass();
+            IGeoDataset extractRes = extractionOp.Attribute(rasterDescriptor);
+            if (extractRes == null) return false;
+
+            // 转换为矢量
+            IRaster extractResRaster = extractRes as IRaster;
+            IRasterDomainExtractor rasterpolygon = new RasterDomainExtractor();
+            IPolygon polygon = rasterpolygon.ExtractDomain(extractResRaster, false);
+
+            // 输出矢量
+            IWorkspace workspace = FeatureEdit.getInstance().createDatabase(outDb);
+            outFeatureClassName = outFeatureClassName == "" ? System.IO.Path.GetFileNameWithoutExtension(imgFullName) : outFeatureClassName;
+            IFeatureClass featureClass = FeatureEdit.getInstance().createFeatureClass(workspace, null, outFeatureClassName, esriGeometryType.esriGeometryPolygon, 
+                (rasterDataset as IGeoDataset).SpatialReference);
+            IWorkspaceEdit workspaceEdit = workspace as IWorkspaceEdit;
+            workspaceEdit.StartEditing(false);
+            IFeature newFeature = featureClass.CreateFeature();
+            newFeature.Shape = polygon;
+            newFeature.Store();
+            workspaceEdit.StopEditing(true);
+
+            Marshal.ReleaseComObject(workspaceFactory);
+            Marshal.ReleaseComObject(rasterWorkspace);
+            Marshal.ReleaseComObject(rasterDataset);
+            Marshal.ReleaseComObject(extractionOp);
+            Marshal.ReleaseComObject(extractRes);
+            Marshal.ReleaseComObject(workspace);
+            Marshal.ReleaseComObject(featureClass);
+            Marshal.ReleaseComObject(newFeature);
+            Marshal.ReleaseComObject(polygon);
+            System.GC.Collect();
+
+            return true;
         }
     }
 }

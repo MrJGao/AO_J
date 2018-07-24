@@ -32,7 +32,7 @@ namespace AO_J_TestProject
             // 创建测试结果文件夹
             if (System.IO.Directory.Exists(m_testResultFolder))
             {
-                System.IO.Directory.Delete(m_testResultFolder);
+                System.IO.Directory.Delete(m_testResultFolder, true);
             }
             System.IO.Directory.CreateDirectory(m_testResultFolder);
         }
@@ -41,7 +41,7 @@ namespace AO_J_TestProject
         public static void MyTestCleanup()
         {
             // 删除测试结果文件夹
-            System.IO.Directory.Delete(m_testResultFolder, true);
+            //System.IO.Directory.Delete(m_testResultFolder, true);
         }
     }
 }
