@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using ESRI.ArcGIS.Geometry;
 using ESRI.ArcGIS.Geodatabase;
+using ESRI.ArcGIS.DataSourcesRaster;
 
 namespace AO_J_TestProject
 {
@@ -154,6 +155,21 @@ namespace AO_J_TestProject
             string expression = "VALUE > 1";
             IGeoDataset actual = target.extractRasterByAttribute(imgFullName, expression);
             Assert.AreNotEqual(null, actual);
+        }
+
+        /// <summary>
+        ///getRasterBandStatistics 的测试
+        ///</summary>
+        [TestMethod]
+        public void getRasterBandStatisticsTest()
+        {
+            RasterOperation target = RasterOperation.getInstance();
+            string imgFullName = System.IO.Path.Combine(TestInitialize.m_testDataPath, "raster", "landcover.img");
+            IRasterStatistics rs = target.getRasterBandStatistics(imgFullName);
+            Assert.IsNotNull(rs);
+            Assert.AreEqual(0, rs.Minimum);
+            Assert.AreEqual(12, rs.Maximum);
+            Assert.AreEqual(1.3375102946559, rs.Mean);
         }
     }
 }

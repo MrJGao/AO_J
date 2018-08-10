@@ -330,6 +330,15 @@ namespace AO_J
         /// <param name="fieldLength">字段长度</param>
         public void addField(IFeatureClass featureClass, string fieldName, esriFieldType FieldType, int fieldLength)
         {
+            // 编辑状态下是不能新增字段的，因此如果目前是编辑状态，就关闭编辑，最后再重新打开
+            bool reOpenEdit = false;
+            IWorkspaceEdit workspeceEdit= (featureClass as IDataset).Workspace as IWorkspaceEdit;
+            if (workspeceEdit.IsBeingEdited())
+            {
+                workspeceEdit.StopEditing(true);
+                reOpenEdit = true;
+            }
+
             //若存在，则不需添加
             if (featureClass.Fields.FindField(fieldName) > -1) return;
             IField pField = new FieldClass();
@@ -341,6 +350,11 @@ namespace AO_J
 
             IClass pClass = featureClass as IClass;
             pClass.AddField(pField);
+
+            if (reOpenEdit == true)
+            {
+                workspeceEdit.StartEditing(false);
+            }
         }
         # endregion Workspace, FeatureClass...
 

@@ -287,5 +287,30 @@ namespace AO_J
 
             return true;
         }
+
+        /// <summary>
+        /// 获取影像对应波段的统计对象
+        /// </summary>
+        /// <param name="imgFullName">影像文件路径</param>
+        /// <param name="bandNum">波段序号，默认为0</param>
+        /// <returns>该波段的统计对象</returns>
+        public IRasterStatistics getRasterBandStatistics(string imgFullName, int bandNum = 0)
+        {
+            IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
+            IRasterWorkspace rasterWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(imgFullName), 0) as IRasterWorkspace;
+            IRasterDataset rasterDataset = rasterWorkspace.OpenRasterDataset(System.IO.Path.GetFileName(imgFullName));
+            IRaster raster = (rasterDataset as IRasterDataset2).CreateFullRaster();
+            IRasterBandCollection rbc = (IRasterBandCollection)raster;
+
+            if ((rbc.Count - 1) < bandNum) { return null; }// 请求的波段序号超出范围
+            
+            IRasterBand rb = rbc.Item(bandNum);
+            bool tmpBool;
+            rb.HasStatistics(out tmpBool);
+            if (!tmpBool) { rb.ComputeStatsAndHist(); }
+
+            IRasterStatistics rs = rb.Statistics;
+            return rs;
+        }
     }
 }
