@@ -95,6 +95,7 @@ namespace AO_J
                     dt = DatabaseType.mdb;
                     break;
             }
+            if (dt == DatabaseType.unknown) { return null; }
 
             IWorkspaceFactory workspaceFactory = getWorkspaceFactory(dt);
             IWorkspace workspace = null;
