@@ -45,7 +45,7 @@ namespace AO_J
         /// <param name="color">闪烁的颜色</param>
         /// <param name="display">地图显示对象</param>
         /// <param name="delay">闪烁延迟</param>
-        public void FlashGeometry(IGeometry geometry, IRgbColor color, IDisplay display, System.Int32 delay)
+        public void flashGeometry(IGeometry geometry, IRgbColor color, IDisplay display, System.Int32 delay)
         {
             if (geometry == null || color == null || display == null)
             {
@@ -135,7 +135,7 @@ namespace AO_J
         /// <param name="pActiveView"></param>
         /// <param name="pixelUnits"></param>
         /// <returns></returns>
-        public static double ConvertPixelsToMapUnits(IActiveView pActiveView, double pixelUnits)
+        public static double convertPixelsToMapUnits(IActiveView pActiveView, double pixelUnits)
         {
             // Uses the ratio of the size of the map in pixels to map units to do the conversion  
             IPoint p1 = pActiveView.ScreenDisplay.DisplayTransformation.VisibleBounds.UpperLeft;

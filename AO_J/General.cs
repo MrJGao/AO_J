@@ -44,7 +44,7 @@ namespace AO_J
         /// </summary>
         /// <param name="sourcePath">源路径</param>
         /// <param name="destinationPath">目标路径</param>
-        public void CopyDirectory(String sourcePath, String destinationPath)
+        public void copyDirectory(String sourcePath, String destinationPath)
         {
             DirectoryInfo info = new DirectoryInfo(sourcePath);
             Directory.CreateDirectory(destinationPath);
@@ -57,7 +57,7 @@ namespace AO_J
                 else                                    //如果是文件夹，新建文件夹，递归
                 {
                     Directory.CreateDirectory(destName);
-                    CopyDirectory(fsi.FullName, destName);
+                    copyDirectory(fsi.FullName, destName);
                 }
             }
         }
