@@ -45,19 +45,12 @@ namespace AO_J_TestProject
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            // 打开测试shp数据
-            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
-            m_workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
-            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
-            m_featureWorkspace = m_workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
         }
         
         //使用 ClassCleanup 在运行完类中的所有测试后再运行代码
         [ClassCleanup()]
         public static void MyClassCleanup()
         {
-            Marshal.ReleaseComObject(m_featureWorkspace);
-            Marshal.ReleaseComObject(m_workspaceFactory);
         }
         //
         //使用 TestInitialize 在运行每个测试前先运行代码
@@ -74,19 +67,19 @@ namespace AO_J_TestProject
         
         #endregion
 
-        /// <summary>
-        ///exportSelectedFeatureToShp 的测试
-        ///</summary>
-        [TestMethod()]
-        public void exportSelectedFeatureToShpTest()
-        {
-            FeatureEdit target = FeatureEdit.getInstance();
-            IFeatureLayer featureLayer = null; // TODO: 初始化为适当的值
-            ISelectionSet selectionSet = null; // TODO: 初始化为适当的值
-            string outName = string.Empty; // TODO: 初始化为适当的值
-            target.exportSelectedFeatureToShp(featureLayer, selectionSet, outName);
-            Assert.Inconclusive("无法验证不返回值的方法。");
-        }
+        ///// <summary>
+        /////exportSelectedFeatureToShp 的测试
+        /////</summary>
+        //[TestMethod()]
+        //public void exportSelectedFeatureToShpTest()
+        //{
+        //    FeatureEdit target = FeatureEdit.getInstance();
+        //    IFeatureLayer featureLayer = null; // TODO: 初始化为适当的值
+        //    ISelectionSet selectionSet = null; // TODO: 初始化为适当的值
+        //    string outName = string.Empty; // TODO: 初始化为适当的值
+        //    target.exportSelectedFeatureToShp(featureLayer, selectionSet, outName);
+        //    Assert.Inconclusive("无法验证不返回值的方法。");
+        //}
 
         /// <summary>
         ///getFeatureClassFromFile 的测试
@@ -110,9 +103,16 @@ namespace AO_J_TestProject
         public void getFeatureValueTest()
         {
             FeatureEdit target = FeatureEdit.getInstance();
+
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            IWorkspaceFactory workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            IFeatureWorkspace featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
             
-            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
-            IFeature feature = featureClass.GetFeature(0);
+            IFeatureClass featureClass = featureWorkspace.OpenFeatureClass("airports");
+            IFeature feature = featureClass.Search(new QueryFilterClass() { WhereClause = "\"NAME\" = 'NOATAK'" }, false).NextFeature();
+            Assert.IsNotNull(feature);
             string fieldName = "NAME";
             object expected = "NOATAK";
             object actual = target.getFeatureValue(feature, fieldName);
@@ -168,15 +168,21 @@ namespace AO_J_TestProject
         [TestMethod()]
         public void setFeatureBufferValueTest()
         {
-            FeatureEdit target = FeatureEdit.getInstance();// TODO: 初始化为适当的值
-            IFeatureBuffer feaBuf = null; // TODO: 初始化为适当的值
-            string fieldName = string.Empty; // TODO: 初始化为适当的值
-            object value = null; // TODO: 初始化为适当的值
-            bool expected = false; // TODO: 初始化为适当的值
-            bool actual;
-            actual = target.setFeatureBufferValue(feaBuf, fieldName, value);
+            FeatureEdit target = FeatureEdit.getInstance();
+
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            IWorkspaceFactory workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            IFeatureWorkspace featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+            
+            IFeatureClass featureClass = featureWorkspace.OpenFeatureClass("airports");
+            IFeatureBuffer feaBuf = featureClass.CreateFeatureBuffer();
+            string fieldName = "NAME";
+            object value = "buffer test";
+            bool expected = true; // TODO: 初始化为适当的值
+            bool actual = target.setFeatureBufferValue(feaBuf, fieldName, value);
             Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
         }
 
         /// <summary>
@@ -187,16 +193,25 @@ namespace AO_J_TestProject
         {
             FeatureEdit target = FeatureEdit.getInstance();
 
-            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            IWorkspaceFactory workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            IFeatureWorkspace featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+            
+            IFeatureClass featureClass = featureWorkspace.OpenFeatureClass("airports");
             IFeature feature = featureClass.GetFeature(0);
-            string fieldName = string.Empty;
-            object value = null;
-            bool save = false;
-            bool expected = false;
-            bool actual;
-            actual = target.setFeatureValue(feature, fieldName, value, save);
+            string fieldName = "NAME";
+            object originVal = feature.get_Value(feature.Fields.FindField(fieldName)); 
+            object value = "set value test";
+            bool save = true;
+            bool expected = true;
+            bool actual = target.setFeatureValue(feature, fieldName, value, save);
             Assert.AreEqual(expected, actual);
-            Assert.Inconclusive("验证此测试方法的正确性。");
+            
+            // 把要素的原始值设置回去
+            feature.set_Value(feature.Fields.FindField(fieldName), originVal);
+            feature.Store();
         }
 
         /// <summary>
@@ -290,7 +305,13 @@ namespace AO_J_TestProject
         {
             FeatureEdit fe = FeatureEdit.getInstance();
 
-            IFeatureClass featureClass = m_featureWorkspace.OpenFeatureClass("airports");
+            // 打开测试shp数据
+            Type FactoryType = Type.GetTypeFromProgID("esriDataSourcesFile.ShapefileWorkspaceFactory");
+            IWorkspaceFactory workspaceFactory = Activator.CreateInstance(FactoryType) as IWorkspaceFactory;
+            string shpPath = System.IO.Path.GetFullPath(TestInitialize.m_testDataPath + "shapefiles\\airports.shp");
+            IFeatureWorkspace featureWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(shpPath), 0) as IFeatureWorkspace;
+
+            IFeatureClass featureClass = featureWorkspace.OpenFeatureClass("airports");
             IFeature f1 = featureClass.GetFeature(0);
             IFeature f2 = featureClass.CreateFeature();
             f2.Shape = f1.ShapeCopy;
