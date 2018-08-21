@@ -12,9 +12,6 @@ namespace AO_J_TestProject
     [TestClass()]
     public class GeneralTest
     {
-        private static string m_testDataPath = "..\\..\\..\\AO_J_TestProject\\TestData\\";
-        private static string m_testResultPath = "..\\..\\..\\AO_J_TestProject\\TestData\\TestResult\\";
-
         private TestContext testContextInstance;
 
         /// <summary>

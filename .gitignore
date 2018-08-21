@@ -234,3 +234,4 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+AO_J_TestProject/TestData/shapefiles/airports.dbf
