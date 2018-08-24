@@ -44,13 +44,13 @@ namespace AO_J
         /// </summary>
         /// <param name="sourcePath">源路径</param>
         /// <param name="destinationPath">目标路径</param>
-        public void copyDirectory(String sourcePath, String destinationPath)
+        public void copyDirectory(string sourcePath, string destinationPath)
         {
             DirectoryInfo info = new DirectoryInfo(sourcePath);
             Directory.CreateDirectory(destinationPath);
             foreach (FileSystemInfo fsi in info.GetFileSystemInfos())
             {
-                String destName = Path.Combine(destinationPath, fsi.Name);
+                string destName = Path.Combine(destinationPath, fsi.Name);
 
                 if (fsi is System.IO.FileInfo)          //如果是文件，复制文件
                     File.Copy(fsi.FullName, destName, true);
@@ -58,6 +58,29 @@ namespace AO_J
                 {
                     Directory.CreateDirectory(destName);
                     copyDirectory(fsi.FullName, destName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 移动文件夹到指定位置
+        /// </summary>
+        /// <param name="sourcePath">源路径</param>
+        /// <param name="destinationPath">目标路径</param>
+        public void moveDirectory(string sourcePath, string destinationPath)
+        {
+            DirectoryInfo info = new DirectoryInfo(sourcePath);
+            Directory.CreateDirectory(destinationPath);
+            foreach (FileSystemInfo fsi in info.GetFileSystemInfos())
+            {
+                string destName = System.IO.Path.Combine(destinationPath, fsi.Name);
+
+                if (fsi is System.IO.FileInfo)          //如果是文件，复制文件
+                    File.Move(fsi.FullName, destName);
+                else                                    //如果是文件夹，新建文件夹，递归
+                {
+                    Directory.CreateDirectory(destName);
+                    moveDirectory(fsi.FullName, destName);
                 }
             }
         }
@@ -104,6 +127,25 @@ namespace AO_J
                 {
                     getAllSpecifiedFilesFromFolder(fsi.FullName, filterPattern, ref filenameList);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 比较两个双精度浮点数是否相等
+        /// </summary>
+        /// <param name="d1">第一个双精度浮点数</param>
+        /// <param name="d2">另一个双精度浮点数</param>
+        /// <param name="tolerance">精度控制</param>
+        /// <returns>相等返回true，否则返回false</returns>
+        public bool isEqualDouble(double d1, double d2, double tolerance)
+        {
+            if (Math.Abs(d1 - d2) <= tolerance)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

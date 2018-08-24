@@ -323,6 +323,40 @@ namespace AO_J
         }
 
         /// <summary>
+        /// 获取table
+        /// </summary>
+        /// <param name="workspace">工作空间对象</param>
+        /// <param name="tableName">表格名称</param>
+        /// <returns>ITable数据表格对象</returns>
+        public ITable getTable(IWorkspace workspace, string tableName)
+        {
+            IWorkspace2 workspace2 = workspace as IWorkspace2;
+            if (workspace2 == null) return null;
+
+            ITable table = null;
+            IDatasetName dn = null;
+            IEnumDatasetName edn = workspace.get_DatasetNames(esriDatasetType.esriDTAny);
+            bool isExist = false;
+            while ((dn = edn.Next()) != null)
+            {
+                if (dn.Name == tableName)
+                {
+                    isExist = true;
+                    break;
+                }
+            }
+            if (isExist)
+            {
+                table = (workspace as IFeatureWorkspace).OpenTable(tableName);
+            }
+            else
+            {
+                table = null;
+            }
+            return table;
+        }
+
+        /// <summary>
         /// 添加新字段
         /// </summary>
         /// <param name="featureClass">要素类</param>
@@ -355,6 +389,79 @@ namespace AO_J
             if (reOpenEdit == true)
             {
                 workspeceEdit.StartEditing(false);
+            }
+        }
+
+        /// <summary>
+        /// FeatureClass格式转换
+        /// </summary>
+        /// <param name="sourceWorkspace">原始工作空间</param>
+        /// <param name="targetWorkspace">目标工作空间</param>
+        /// <param name="nameOfSourceFeatureClass">原始FeatureClass名称</param>
+        /// <param name="nameOfTargetFeatureClass">目标FeatureClass名称</param>
+        /// <param name="pQueryFilter"></param>
+        public void convertFeatureClass(IWorkspace sourceWorkspace, IWorkspace targetWorkspace,
+            string nameOfSourceFeatureClass, string nameOfTargetFeatureClass, IQueryFilter pQueryFilter)
+        {
+            //create source workspace name
+            IDataset sourceWorkspaceDataset = (IDataset)sourceWorkspace;
+            IWorkspaceName sourceWorkspaceName = (IWorkspaceName)sourceWorkspaceDataset.FullName;
+
+            //create source dataset name
+            IFeatureClassName sourceFeatureClassName = new FeatureClassNameClass();
+            IDatasetName sourceDatasetName = (IDatasetName)sourceFeatureClassName;
+            sourceDatasetName.WorkspaceName = sourceWorkspaceName;
+            sourceDatasetName.Name = nameOfSourceFeatureClass;
+
+            //create target workspace name
+            IDataset targetWorkspaceDataset = (IDataset)targetWorkspace;
+            IWorkspaceName targetWorkspaceName = (IWorkspaceName)targetWorkspaceDataset.FullName;
+
+            //create target dataset name
+            IFeatureClassName targetFeatureClassName = new FeatureClassNameClass();
+            IDatasetName targetDatasetName = (IDatasetName)targetFeatureClassName;
+            targetDatasetName.WorkspaceName = targetWorkspaceName;
+            targetDatasetName.Name = nameOfTargetFeatureClass;
+
+            //Open input Featureclass to get field definitions.
+            ESRI.ArcGIS.esriSystem.IName sourceName = (ESRI.ArcGIS.esriSystem.IName)sourceFeatureClassName;
+            IFeatureClass sourceFeatureClass = (IFeatureClass)sourceName.Open();
+
+            //Validate the field names because you are converting between different workspace types.
+            IFieldChecker fieldChecker = new FieldCheckerClass();
+            IFields targetFeatureClassFields;
+            IFields sourceFeatureClassFields = sourceFeatureClass.Fields;
+            IEnumFieldError enumFieldError;
+
+            // Most importantly set the input and validate workspaces!
+            fieldChecker.InputWorkspace = sourceWorkspace;
+            fieldChecker.ValidateWorkspace = targetWorkspace;
+            fieldChecker.Validate(sourceFeatureClassFields, out enumFieldError, out targetFeatureClassFields);
+
+            // Loop through the output fields to find the geomerty field
+            IField geometryField;
+            for (int i = 0; i < targetFeatureClassFields.FieldCount; i++)
+            {
+                if (targetFeatureClassFields.get_Field(i).Type == esriFieldType.esriFieldTypeGeometry)
+                {
+                    geometryField = targetFeatureClassFields.get_Field(i);
+                    // Get the geometry field's geometry defenition
+                    IGeometryDef geometryDef = geometryField.GeometryDef;
+
+                    //Give the geometry definition a spatial index grid count and grid size
+                    IGeometryDefEdit targetFCGeoDefEdit = (IGeometryDefEdit)geometryDef;
+
+                    targetFCGeoDefEdit.GridCount_2 = 1;
+                    targetFCGeoDefEdit.set_GridSize(0, 0); //Allow ArcGIS to determine a valid grid size for the data loaded
+                    targetFCGeoDefEdit.SpatialReference_2 = geometryField.GeometryDef.SpatialReference;
+
+                    // Load the feature class
+                    IFeatureDataConverter fctofc = new FeatureDataConverterClass();
+                    //IEnumInvalidObject enumErrors = fctofc.ConvertFeatureClass(sourceFeatureClassName, queryFilter, null, targetFeatureClassName, geometryDef, targetFeatureClassFields, "", 1000, 0);
+                    IEnumInvalidObject enumErrors = fctofc.ConvertFeatureClass(sourceFeatureClassName, pQueryFilter, null, targetFeatureClassName, geometryDef, targetFeatureClassFields, "", 1000, 0);
+
+                    break;
+                }
             }
         }
         # endregion Workspace, FeatureClass...
@@ -427,6 +534,24 @@ namespace AO_J
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// 获取Table表中行的特定字段值
+        /// </summary>
+        /// <param name="row">表行</param>
+        /// <param name="fieldName">字段名</param>
+        /// <returns>返回字段值</returns>
+        public object getRowFieldValue(IRow row, String fieldName)
+        {
+            int index = -1;
+            index = row.Fields.FindField(fieldName);
+            if (index == -1)
+            {
+                return "";
+            }
+
+            return row.get_Value(index);
         }
         #endregion Feature value
 
@@ -582,76 +707,33 @@ namespace AO_J
         }
 
         /// <summary>
-        /// FeatureClass格式转换
+        /// IEnvelope对象转IPolygon对象
         /// </summary>
-        /// <param name="sourceWorkspace">原始工作空间</param>
-        /// <param name="targetWorkspace">目标工作空间</param>
-        /// <param name="nameOfSourceFeatureClass">原始FeatureClass名称</param>
-        /// <param name="nameOfTargetFeatureClass">目标FeatureClass名称</param>
-        /// <param name="pQueryFilter"></param>
-        public static void convertFeatureClass(IWorkspace sourceWorkspace, IWorkspace targetWorkspace,
-            string nameOfSourceFeatureClass, string nameOfTargetFeatureClass, IQueryFilter pQueryFilter)
+        /// <param name="env">IEnvelope对象</param>
+        /// <returns>IPolygon对象</returns>
+        public IPolygon envToPolygon(IEnvelope env)
         {
-            //create source workspace name
-            IDataset sourceWorkspaceDataset = (IDataset)sourceWorkspace;
-            IWorkspaceName sourceWorkspaceName = (IWorkspaceName)sourceWorkspaceDataset.FullName;
+            if (env == null) return null;
+            IPoint p1 = env.UpperLeft;
+            IPoint p2 = env.LowerLeft;
+            IPoint p3 = env.LowerRight;
+            IPoint p4 = env.UpperRight;
+            IPointCollection pPointCollection = new PolygonClass();
+            object missing = Type.Missing;
+            pPointCollection.AddPoint(p1, ref missing, ref missing);
+            pPointCollection.AddPoint(p2, ref missing, ref missing);
+            pPointCollection.AddPoint(p3, ref missing, ref missing);
+            pPointCollection.AddPoint(p4, ref missing, ref missing);
+            IPolygon polygon = pPointCollection as IPolygon;
+            polygon.Close();
+            polygon.SpatialReference = env.SpatialReference;
 
-            //create source dataset name
-            IFeatureClassName sourceFeatureClassName = new FeatureClassNameClass();
-            IDatasetName sourceDatasetName = (IDatasetName)sourceFeatureClassName;
-            sourceDatasetName.WorkspaceName = sourceWorkspaceName;
-            sourceDatasetName.Name = nameOfSourceFeatureClass;
+            ITopologicalOperator topo = polygon as ITopologicalOperator;
+            topo.Simplify();
 
-            //create target workspace name
-            IDataset targetWorkspaceDataset = (IDataset)targetWorkspace;
-            IWorkspaceName targetWorkspaceName = (IWorkspaceName)targetWorkspaceDataset.FullName;
-
-            //create target dataset name
-            IFeatureClassName targetFeatureClassName = new FeatureClassNameClass();
-            IDatasetName targetDatasetName = (IDatasetName)targetFeatureClassName;
-            targetDatasetName.WorkspaceName = targetWorkspaceName;
-            targetDatasetName.Name = nameOfTargetFeatureClass;
-
-            //Open input Featureclass to get field definitions.
-            ESRI.ArcGIS.esriSystem.IName sourceName = (ESRI.ArcGIS.esriSystem.IName)sourceFeatureClassName;
-            IFeatureClass sourceFeatureClass = (IFeatureClass)sourceName.Open();
-
-            //Validate the field names because you are converting between different workspace types.
-            IFieldChecker fieldChecker = new FieldCheckerClass();
-            IFields targetFeatureClassFields;
-            IFields sourceFeatureClassFields = sourceFeatureClass.Fields;
-            IEnumFieldError enumFieldError;
-
-            // Most importantly set the input and validate workspaces!
-            fieldChecker.InputWorkspace = sourceWorkspace;
-            fieldChecker.ValidateWorkspace = targetWorkspace;
-            fieldChecker.Validate(sourceFeatureClassFields, out enumFieldError, out targetFeatureClassFields);
-
-            // Loop through the output fields to find the geomerty field
-            IField geometryField;
-            for (int i = 0; i < targetFeatureClassFields.FieldCount; i++)
-            {
-                if (targetFeatureClassFields.get_Field(i).Type == esriFieldType.esriFieldTypeGeometry)
-                {
-                    geometryField = targetFeatureClassFields.get_Field(i);
-                    // Get the geometry field's geometry defenition
-                    IGeometryDef geometryDef = geometryField.GeometryDef;
-
-                    //Give the geometry definition a spatial index grid count and grid size
-                    IGeometryDefEdit targetFCGeoDefEdit = (IGeometryDefEdit)geometryDef;
-
-                    targetFCGeoDefEdit.GridCount_2 = 1;
-                    targetFCGeoDefEdit.set_GridSize(0, 0); //Allow ArcGIS to determine a valid grid size for the data loaded
-                    targetFCGeoDefEdit.SpatialReference_2 = geometryField.GeometryDef.SpatialReference;
-
-                    // Load the feature class
-                    IFeatureDataConverter fctofc = new FeatureDataConverterClass();
-                    //IEnumInvalidObject enumErrors = fctofc.ConvertFeatureClass(sourceFeatureClassName, queryFilter, null, targetFeatureClassName, geometryDef, targetFeatureClassFields, "", 1000, 0);
-                    IEnumInvalidObject enumErrors = fctofc.ConvertFeatureClass(sourceFeatureClassName, pQueryFilter, null, targetFeatureClassName, geometryDef, targetFeatureClassFields, "", 1000, 0);
-
-                    break;
-                }
-            }
+            return polygon;
         }
+
+       
     }
 }

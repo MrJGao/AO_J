@@ -4,6 +4,8 @@ using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.DataSourcesRaster;
 using System.Runtime.InteropServices;
 using ESRI.ArcGIS.GeoAnalyst;
+using System.Collections.Generic;
+using System;
 
 namespace AO_J
 {
@@ -311,6 +313,67 @@ namespace AO_J
 
             IRasterStatistics rs = rb.Statistics;
             return rs;
+        }
+
+        /// <summary>
+        /// 获取影像文件属性对象
+        /// </summary>
+        /// <param name="imgFullName">影像文件路径</param>
+        /// <returns>影像属性对象</returns>
+        public IRasterProps getRasterProperty(string imgFullName)
+        {
+            IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
+            IRasterWorkspace rasterWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(imgFullName), 0) as IRasterWorkspace;
+            IRasterDataset rasterDataset = rasterWorkspace.OpenRasterDataset(System.IO.Path.GetFileName(imgFullName));
+            IRaster raster = (rasterDataset as IRasterDataset2).CreateDefaultRaster();
+            IRasterProps rasterProps = raster as IRasterProps;
+            return rasterProps;
+        }
+
+        /// <summary>
+        /// 栅格代数计算
+        /// </summary>
+        /// <param name="rasterList">输入栅格列表，必须与表达式顺序相对应</param>
+        /// <param name="expression">计算表达式，栅格数据集用[r1]、[r2]表示。例如，求栅格差值，则表达式为：[r1]-[r2]</param>
+        /// <param name="outputFile">计算结果的返回路径</param>
+        /// <returns>执行成功返回true，否则为false</returns>
+        public bool calculateRaster(List<string> rasterList, string expression, string outputFile)
+        {
+            try
+            {
+                IWorkspaceFactory workspaceFactory = new RasterWorkspaceFactory();
+                IMapAlgebraOp mapAlgebraOp = new RasterMapAlgebraOpClass(); // Create RasterMapAlgebraOp.
+
+                for (int i = 0; i < rasterList.Count; i++)
+                {
+                    string imgName = rasterList[i];
+                    IRasterWorkspace rasterWorkspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(imgName), 0) as IRasterWorkspace;
+                    IRasterDataset rasterDataset = rasterWorkspace.OpenRasterDataset(System.IO.Path.GetFileName(imgName));
+
+                    //Bind rasters.
+                    mapAlgebraOp.BindRaster((IGeoDataset)rasterDataset, "r" + (i + 1).ToString());
+                }
+
+                // Set environment. 
+                IRasterAnalysisEnvironment env = default(IRasterAnalysisEnvironment);
+                env = (IRasterAnalysisEnvironment)mapAlgebraOp;
+                IWorkspace workspace = workspaceFactory.OpenFromFile(System.IO.Path.GetDirectoryName(outputFile), 0);
+                env.OutWorkspace = workspace;
+
+                //Execute script. 
+                IRaster rasOut;
+                rasOut = (IRaster)mapAlgebraOp.Execute(expression);
+                //Save output raster. 
+                ISaveAs2 saveAs = (ISaveAs2)rasOut;
+                saveAs.SaveAs(System.IO.Path.GetFileName(outputFile), workspace, "IMAGINE Image");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("栅格表达式计算错误: " + ex.Message);
+                return false;
+            }
+
+            return true;
         }
     }
 }
