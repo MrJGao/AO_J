@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.AccessControl;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace AO_J
 {
@@ -147,6 +148,51 @@ namespace AO_J
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// 判断字符串是否代表整数
+        /// </summary>
+        /// <param name="val">字符串</param>
+        /// <returns>字符串为整数，返回true；否则返回false。</returns>
+        public bool strIsInteger(string val)
+        {
+            if (val == "")
+            {
+                return false;
+            }
+            string pattern = @"^[+-]?\d*$";
+            return Regex.IsMatch(val, pattern);
+        }
+
+        /// <summary>
+        /// 判断字符串是否代表浮点型数字
+        /// </summary>
+        /// <param name="val">字符串</param>
+        /// <returns>字符串为浮点型，返回true；否则返回false。</returns>
+        public bool strIsFloat(string val)
+        {
+            if (val == "")
+            {
+                return false;
+            }
+            string pattern = @"^[+-]?\d*[.]\d*$";
+            return Regex.IsMatch(val, pattern);
+        }
+
+        /// <summary>
+        /// 判断字符串是否代表数字，包括整型和浮点型
+        /// </summary>
+        /// <param name="val">字符串</param>
+        /// <returns>字符串为数字，返回true；否则返回false。</returns>
+        public bool strIsNumeric(string val)
+        {
+            if (val == "")
+            {
+                return false;
+            }
+            string pattern = @"^[+-]?\d*[.]?\d*$";
+            return Regex.IsMatch(val, pattern);
         }
     }
 }
